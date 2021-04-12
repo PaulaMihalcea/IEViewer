@@ -1,10 +1,13 @@
 import sys, errno
-from PIL import Image
-from PyQt5.QtWidgets import QMainWindow, QLabel, QMenu, QMenuBar, QAction, QFileDialog, QMessageBox
+from PyQt5.QtCore import Qt, QEvent
 from PyQt5.QtGui import QPixmap, QImage
+from PyQt5.QtWidgets import QMainWindow, QLabel, QMenu, QMenuBar, QAction, QFileDialog, QMessageBox, QSizePolicy
 
 
-def initUI(viewer):
+
+
+
+def initUI(viewer):  # TODO Metti ogni categoria come funzione a sé
 
     # Menu bar actions
     menu_bar_actions = {'File': {'Open': QAction('&Open...', viewer, shortcut='Ctrl+O', statusTip='Open file', triggered=viewer.open_image),  # TODO
@@ -36,7 +39,10 @@ def initUI(viewer):
             menus[menu].addAction(menu_bar_actions[menu][action])
 
     # Image area
-    viewer.image_area = QLabel()
+    viewer.image_area = QLabel(viewer)
+    viewer.image_area.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)  # Allows complete control over resizing the window  # TODO Keep ratio
+    viewer.image_area.setScaledContents(False)
+    viewer.setCentralWidget(viewer.image_area)  # TODO
 
     # Window properties
     viewer.setWindowTitle('IEViewer')
@@ -51,31 +57,65 @@ class ImageViewer(QMainWindow):
 
         initUI(self)
 
+        print(self.image_area.pixmap(), type(self.image_area.pixmap()))
+        self.image_area.setPixmap(QPixmap(self.image_area.pixmap()))
+        print(self.image_area.pixmap(), type(self.image_area.pixmap()))
+        self.image_area._pixmap = QPixmap(self.image_area.pixmap())
+        self.image_area.installEventFilter(self)
+
+
+    def eventFilter(self, widget, event):
+        if (event.type() == QEvent.Resize and widget is self.image_area):
+            #self.image_area.setPixmap(self.image_area._pixmap.scaled(self.image_area.width(), self.image_area.height(), aspectRatioMode=Qt.KeepAspectRatio))
+            self.image_area.setPixmap(self.image_area.pixmap.scaled(self.image_area.width(), self.image_area.height(), aspectRatioMode=Qt.KeepAspectRatio))
+            return True
+        return QMainWindow.eventFilter(self, widget, event)
+
     def open_image(self):
-        options = QFileDialog.Options()
-        # fileName = QFileDialog.getOpenFileName(self, "Open File", QDir.currentPath())
-        image_path = QFileDialog.getOpenFileName(self, 'Open', '', 'Image Files (*.bmp; *.gif; *.jpg; *.jpeg; *.png; *.pbm; *.pgm; *.ppm; *.xbm; *.xpm)', options=options)[0]
+        image_path = QFileDialog.getOpenFileName(self, 'Open', '', 'Image Files (*.bmp; *.gif; *.jpg; *.jpeg; *.png; *.pbm; *.pgm; *.ppm; *.xbm; *.xpm)')[0]  # By omitting the directory argument (empty string, ''), the dialog remembers the last directory
 
         filename = image_path.split('/')
         filename = filename[len(filename)-1]
 
         if image_path:
+            # Load image
             image = QImage(image_path)
 
-            if image.isNull():  # TODO Controlla cosa intende per null; aggiungi check ulteriore per file di formato sbagliato (cioè formato giusto ma contenuto sbagliato)
-                QMessageBox.information(self, 'IEViewer', 'Cannot open %s.', filename)
+            # Get original image size (dimensions are equal to zero for invalid image files)
+            w = image.width()
+            h = image.height()
+
+            # Check that image is valid
+            if image.isNull() or w == 0 or h == 0:
+                QMessageBox.information(self, 'IEViewer', 'Could not open "{}". \nInvalid file or format not supported.'.format(filename))
                 return
 
-            self.image_area.setPixmap(QPixmap.fromImage(image))
-            #self.scaleFactor = 1.0  # TODO
+            # Recalculate image dimensions so to have a maximum dimension (height or width) of 512 pixels
+            if w >= h and w > 512:
+                new_w = 512
+                new_h = int(512 * h / w)
+            elif h >= w and h > 512:
+                new_w = int(512 * w / h)
+                new_h = 512
+            else:
+                new_w = w
+                new_h = h
 
-            #self.scrollArea.setVisible(True)
-            #self.printAct.setEnabled(True)
-            #self.fitToWindowAct.setEnabled(True)
-            #self.updateActions()
+            # Resize window
+            if new_w < 220:  # Set a minimum window width so as to correctly display the window title and menu bar
+                self.image_area.resize(new_w, self.menuBar().height() + new_h)
+                self.resize(220, self.menuBar().height() + new_h)
+            else:
+                self.image_area.resize(new_w, self.menuBar().height() + new_h)
+                self.resize(new_w, self.menuBar().height() + new_h)
 
-            #if not self.fitToWindowAct.isChecked():
-            #    self.imageLabel.adjustSize()
+            # Add pixmap from image and resize it accordingly
+            pixmap = QPixmap.fromImage(image).scaled(new_w, new_h, aspectRatioMode=Qt.KeepAspectRatio)
+            self.image_area.setPixmap(pixmap)  # pixmap() is the corresponding getter
+            #self.image_area._pixmap = self.image_area.setPixmap(pixmap)
+            self.image_area._pixmap = QPixmap(self.image_area.pixmap())
+
+
 
         return
 

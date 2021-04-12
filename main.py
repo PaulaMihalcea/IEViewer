@@ -1,9 +1,9 @@
-def main(args):  # TODO Usa args
+def main(args):  # TODO Implement args
     import sys
     from PyQt5.QtWidgets import QApplication
     from IEViewer import ImageViewer
 
-    app = QApplication(sys.argv)  # TODO Oppure QApplication([])  # This is a requirement of Qt: Every GUI app must have exactly one instance of QApplication
+    app = QApplication(sys.argv)  # Note: There must be exactly one instance of QApplication active at a time
 
     imageViewer = ImageViewer()
     imageViewer.show()
