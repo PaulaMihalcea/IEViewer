@@ -75,6 +75,9 @@ class ImageViewer(QMainWindow):  # Image viewer main class
     def eventFilter(self, widget, event):
         if event.type() == QEvent.Resize and widget is self.image_area:  # The resizing filter is only applied to the image area label
             self.image_area.setPixmap(self.image_area.pixmap.scaled(self.image_area.width(), self.image_area.height(), aspectRatioMode=Qt.KeepAspectRatio, transformMode=Qt.SmoothTransformation))
+            # Update new dimensions for later use
+            self.image_area.w = self.image_area.width()
+            self.image_area.h = self.image_area.height()
             return True
         return QMainWindow.eventFilter(self, widget, event)
 
@@ -112,6 +115,10 @@ class ImageViewer(QMainWindow):  # Image viewer main class
                 new_w = w
                 new_h = h
 
+            # Store new dimensions for later use
+            self.image_area.w = new_w
+            self.image_area.h = new_h
+
             # Resize image area and window
             self.image_area.resize(new_w, self.menuBar().height() + new_h)
 
@@ -141,21 +148,34 @@ class ImageViewer(QMainWindow):  # Image viewer main class
     # rotateImage180
     # Rotate image by 180 degrees. Triggered from the "Edit" menu "Image Rotation" button
     def rotateImage180(self):
-        pixmap = self.image_area.pixmap.transformed(QTransform().rotate(180), Qt.SmoothTransformation)
+        # Get original pixmap
+        pixmap = self.image_area.pixmap
+        # Transform and update pixmap
+        pixmap = pixmap.transformed(QTransform().rotate(180), Qt.SmoothTransformation).scaled(self.image_area.w, self.image_area.h, aspectRatioMode=Qt.KeepAspectRatio, transformMode=Qt.SmoothTransformation)
         self.image_area.setPixmap(pixmap)
         self.image_area.pixmap = QPixmap(pixmap)
         return
 
     # rotateImage90C
     # Rotate image by 90 degrees (clockwise). Triggered from the "Edit" menu "Image Rotation" button
-    def rotateImage90C(self):  # TODO
-        print('rotate')
+    def rotateImage90C(self):  # TODO L'immagine è sfocata dopo averla rigirata una volta (la rimpicciolisce e poi non la riporta più all'originale)
+        # Get original pixmap
+        pixmap = self.image_area.pixmap
+        # Transform and update pixmap
+        pixmap = pixmap.transformed(QTransform().rotate(90), Qt.SmoothTransformation).scaled(self.image_area.w, self.image_area.h, aspectRatioMode=Qt.KeepAspectRatio, transformMode=Qt.SmoothTransformation)
+        self.image_area.setPixmap(pixmap)
+        self.image_area.pixmap = QPixmap(pixmap)
         return
 
     # rotateImage90CC
     # Rotate image by 90 degrees (counter clockwise). Triggered from the "Edit" menu "Image Rotation" button
-    def rotateImage90CC(self):  # TODO
-        print('rotate')
+    def rotateImage90CC(self):  # TODO L'immagine è sfocata dopo averla rigirata una volta (la rimpicciolisce e poi non la riporta più all'originale)
+        # Get original pixmap
+        pixmap = self.image_area.pixmap
+        # Transform and update pixmap
+        pixmap = pixmap.transformed(QTransform().rotate(-90), Qt.SmoothTransformation).scaled(self.image_area.w, self.image_area.h, aspectRatioMode=Qt.KeepAspectRatio, transformMode=Qt.SmoothTransformation)
+        self.image_area.setPixmap(pixmap)
+        self.image_area.pixmap = QPixmap(pixmap)
         return
 
     def about(self):  # TODO
