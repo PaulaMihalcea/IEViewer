@@ -40,7 +40,7 @@ def initUI(viewer):  # TODO Metti ogni categoria come funzione a sé
 
     # Image area
     viewer.image_area = QLabel(viewer)
-    viewer.image_area.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)  # Allows complete control over resizing the window  # TODO Keep ratio
+    viewer.image_area.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)  # Allows complete control over resizing the window
     viewer.image_area.setScaledContents(False)
     viewer.setCentralWidget(viewer.image_area)  # TODO
 
@@ -57,17 +57,12 @@ class ImageViewer(QMainWindow):
 
         initUI(self)
 
-        print(self.image_area.pixmap(), type(self.image_area.pixmap()))
-        self.image_area.setPixmap(QPixmap(self.image_area.pixmap()))
-        print(self.image_area.pixmap(), type(self.image_area.pixmap()))
-        self.image_area._pixmap = QPixmap(self.image_area.pixmap())
-        self.image_area.installEventFilter(self)
+
 
 
     def eventFilter(self, widget, event):
-        if (event.type() == QEvent.Resize and widget is self.image_area):
-            #self.image_area.setPixmap(self.image_area._pixmap.scaled(self.image_area.width(), self.image_area.height(), aspectRatioMode=Qt.KeepAspectRatio))
-            self.image_area.setPixmap(self.image_area.pixmap.scaled(self.image_area.width(), self.image_area.height(), aspectRatioMode=Qt.KeepAspectRatio))
+        if event.type() == QEvent.Resize and widget is self.image_area:
+            self.image_area.setPixmap(self.image_area.pixmap.scaled(self.image_area.width(), self.image_area.height(), aspectRatioMode=Qt.KeepAspectRatio, transformMode=Qt.SmoothTransformation))
             return True
         return QMainWindow.eventFilter(self, widget, event)
 
@@ -110,10 +105,14 @@ class ImageViewer(QMainWindow):
                 self.resize(new_w, self.menuBar().height() + new_h)
 
             # Add pixmap from image and resize it accordingly
-            pixmap = QPixmap.fromImage(image).scaled(new_w, new_h, aspectRatioMode=Qt.KeepAspectRatio)
+            pixmap = QPixmap.fromImage(image).scaled(new_w, new_h, aspectRatioMode=Qt.KeepAspectRatio, transformMode=Qt.SmoothTransformation)
             self.image_area.setPixmap(pixmap)  # pixmap() is the corresponding getter
             #self.image_area._pixmap = self.image_area.setPixmap(pixmap)
-            self.image_area._pixmap = QPixmap(self.image_area.pixmap())
+
+            self.image_area.pixmap = QPixmap(pixmap)
+            self.image_area.installEventFilter(self)
+
+            #self.image_area.pixmap = QPixmap(self.image_area.pixmap)
 
 
 
