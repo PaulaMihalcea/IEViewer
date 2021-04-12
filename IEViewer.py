@@ -1,22 +1,27 @@
 import sys, errno
-from PyQt5.QtCore import Qt, QEvent
-from PyQt5.QtGui import QPixmap, QImage, QTransform
+from PyQt5.QtCore import Qt, QEvent, QRect
+from PyQt5.QtGui import QPixmap, QImage, QTransform, QMouseEvent
 from PyQt5.QtWidgets import QMainWindow, QLabel, QMenu, QMenuBar, QAction, QFileDialog, QMessageBox, QSizePolicy
 
 
 def initMenuBar(viewer):
     # Actions
-    actions = {'File': {'Open': QAction('&Open...', viewer, shortcut='Ctrl+O', statusTip='Open file', triggered=viewer.openImage),
-                                 'Save': QAction('&Save', viewer, shortcut='Ctrl+S', statusTip='Save file', triggered=viewer.saveImage),  # TODO
-                                 'SaveAs': QAction('Save &As...', viewer, shortcut='Ctrl+Shift+S', statusTip='Save file as...', triggered=viewer.save_as_image),  # TODO
-                                 'Exit': QAction('E&xit', viewer, shortcut='Ctrl+Q', statusTip='Exit application', triggered=viewer.close),
-                                 },
-                        'Edit': {
-                                },
-                        'View': {
-                                },
-                        'Help': {'About': QAction('&About IEViewer', viewer, statusTip='Show version and license information', triggered=viewer.about)  # TODO
-                                },
+    actions = {'File': {'Open': QAction('&Open...', viewer, shortcut='Ctrl+O', statusTip='Open file.', triggered=viewer.openImage),
+                        'Sep1': 'Separator',
+                        'Close': QAction('&Close', viewer, shortcut='Ctrl+W', statusTip='Close current file.', triggered=viewer.closeImage),  # TODO
+                        'Save': QAction('&Save', viewer, shortcut='Ctrl+S', statusTip='Save file.', triggered=viewer.saveImage),  # TODO
+                        'SaveAs': QAction('Save &As...', viewer, shortcut='Ctrl+Shift+S', statusTip='Save file with another name.', triggered=viewer.save_as_image),  # TODO
+                        'Sep2': 'Separator',
+                        'Exit': QAction('E&xit', viewer, shortcut='Ctrl+Q', statusTip='Exit IEViewer.', triggered=viewer.close),
+                       },
+               'Edit': {'ResetImage': QAction('&Reset Image', viewer, shortcut='Ctrl+0', statusTip='Reset image to default size and rotation.', triggered=viewer.resetImage),  # TODO Spostalo sotto Image Rotation
+                        'Sep1': 'Separator',
+                       },
+               'View': {
+                        'ShowEXIF': QAction('Show &EXIF', viewer, shortcut='Ctrl+I', statusTip='Show EXIF data for the current image.', triggered=viewer.showEXIF),
+                       },
+               'Help': {'About': QAction('&About IEViewer', viewer, statusTip='Show version and license information.', triggered=viewer.about)  # TODO
+                       },
     }
 
     # Menus
@@ -34,23 +39,44 @@ def initMenuBar(viewer):
     for menu in menus:
         viewer.menuBar().addMenu(menus[menu])
         for action in actions[menu]:
-            menus[menu].addAction(actions[menu][action])
+            # Add menu separators
+            if actions[menu][action] == 'Separator':
+                menus[menu].addSeparator()
+            else:
+                menus[menu].addAction(actions[menu][action])
+
+
 
     # Add submenus
+    # Image Rotation
     imageRotationMenu = menus['Edit'].addMenu('Ima&ge Rotation')
-    imageRotationMenu.addAction(QAction('&180°', viewer, shortcut='Ctrl+1', statusTip='Rotate image by 180 degrees', triggered=viewer.rotateImage180))
-    imageRotationMenu.addAction(QAction('&90° Clockwise', viewer, shortcut='Ctrl+2', statusTip='Rotate image by 90 degrees (clockwise)', triggered=viewer.rotateImage90C))
-    imageRotationMenu.addAction(QAction('&90° Counter Clockwise', viewer, shortcut='Ctrl+3', statusTip='Rotate image by 90 degrees (counter clockwise)', triggered=viewer.rotateImage90CC))
+    imageRotationMenu.setDisabled(True)
+
+    return {'ImageRotation': imageRotationMenu}
+
+
+def addDisabledSubmenus(viewer):
+    # Image Rotation
+    imageRotationMenu = viewer.disabledMenus['ImageRotation']
+    imageRotationMenu.addAction(QAction('&180°', viewer, shortcut='Ctrl+1', statusTip='Rotate image by 180 degrees.', triggered=viewer.rotateImage180))
+    imageRotationMenu.addAction(QAction('&90° Clockwise', viewer, shortcut='Ctrl+2', statusTip='Rotate image by 90 degrees (clockwise).', triggered=viewer.rotateImage90C))
+    imageRotationMenu.addAction(QAction('&90° Counter Clockwise', viewer, shortcut='Ctrl+3', statusTip='Rotate image by 90 degrees (counter clockwise).', triggered=viewer.rotateImage90CC))
 
     return
 
 
+def initStatusBar(viewer):
+    viewer.statusBar().showMessage('Ready.')
+    return
+
+
 def initImageArea(viewer):
-    # Image area
+    # Image area creation and properties
     viewer.image_area = QLabel(viewer)  # Create image area as a label
     viewer.image_area.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)  # Allow complete control over resizing the window (Expanding does not allow resizing to a smaller size)
     viewer.image_area.setScaledContents(False)  # Avoid stretching the image
     viewer.image_area.setAlignment(Qt.AlignCenter)  # Center image in the window area
+    viewer.image_area.setMouseTracking(True)  # Get mouse position in image  # TODO
 
     viewer.setCentralWidget(viewer.image_area)  # Set the image area as the central widget
 
@@ -61,25 +87,50 @@ def initImageArea(viewer):
     return
 
 
+def initEXIFDialog(viewer):
+    return
+
+
 class ImageViewer(QMainWindow):  # Image viewer main class
     # __init__
     # Constructor; initializes the main window object (the image viewer)
     def __init__(self):
         super().__init__()  # Initialize base class
 
-        initMenuBar(self)  # Initialize menu bar
+        self.disabledMenus = initMenuBar(self)  # Initialize menu bar
         initImageArea(self)  # Initialize image area
+        initStatusBar(self)  # initialize status bar
 
     # eventFilter
     # Event handler override needed to maintain the image aspect ratio correct when scaling the window
+    # And also to show current mouse position in the status bar
     def eventFilter(self, widget, event):
+        # Window resize
         if event.type() == QEvent.Resize and widget is self.image_area:  # The resizing filter is only applied to the image area label
             self.image_area.setPixmap(self.image_area.pixmap.scaled(self.image_area.width(), self.image_area.height(), aspectRatioMode=Qt.KeepAspectRatio, transformMode=Qt.SmoothTransformation))
             # Update new dimensions for later use
             self.image_area.w = self.image_area.width()
+            print(self.image_area.pixmap.width())
             self.image_area.h = self.image_area.height()
             return True
+
+        # Mouse tracking
+        if event.type() == QEvent.MouseMove and event.buttons() == Qt.NoButton:  # TODO
+            print(self.image_area.pixmap.rect())
+            posX = int(event.pos().x() - (self.width() + self.image_area.w) / 2 + self.image_area.w)
+            print(event.pos().x(), self.width(), self.image_area.w)
+            if posX >= 0 and posX <= self.image_area.w:
+                self.statusBar().showMessage(str(posX) + ', ' + str(event.pos().y()) + 'px')
+            else:
+                self.statusBar().showMessage('Ready.')
+
         return QMainWindow.eventFilter(self, widget, event)
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Right and not callable(self.image_area.pixmap):
+            self.rotateImage90C()
+        if event.key() == Qt.Key_Left and not callable(self.image_area.pixmap):
+            self.rotateImage90CC()
 
     # openImage
     # Open an image. Triggered from the "File" menu "Open..." button
@@ -120,20 +171,27 @@ class ImageViewer(QMainWindow):  # Image viewer main class
             self.image_area.h = new_h
 
             # Resize image area and window
-            self.image_area.resize(new_w, self.menuBar().height() + new_h)
-
-            if new_w < 220:  # Set a minimum window width so as to correctly display the window title and menu bar; 220px should be good
-                self.resize(220, self.menuBar().height() + new_h)
+            self.image_area.resize(new_w, self.menuBar().height() + self.statusBar().height() + new_h)
+            if new_w < 280:  # Set a minimum window width so as to correctly display the window title and menu bar; 280px should be good
+                self.resize(280, self.menuBar().height() + self.statusBar().height() + new_h)
             else:
-                self.resize(new_w, self.menuBar().height() + new_h)
+                self.resize(new_w, self.menuBar().height() + self.statusBar().height() + new_h)
 
             # Add pixmap from image and resize it accordingly
             pixmap = QPixmap.fromImage(image).scaled(new_w, new_h, aspectRatioMode=Qt.KeepAspectRatio, transformMode=Qt.SmoothTransformation)
-
             self.image_area.setPixmap(pixmap)
             self.image_area.pixmap = QPixmap(pixmap)
             self.image_area.installEventFilter(self)  # Install the new event handler
 
+            # Activate disabled menus
+            for key in self.disabledMenus:
+                self.disabledMenus[key].setDisabled(False)
+            addDisabledSubmenus(self)
+
+        return
+
+    def closeImage(self):
+        print('close image')
         return
 
     # saveImage
@@ -178,6 +236,14 @@ class ImageViewer(QMainWindow):  # Image viewer main class
         self.image_area.pixmap = QPixmap(pixmap)
         return
 
+    def resetImage(self):
+        print('reset image')
+        return
+
     def about(self):  # TODO
         print('about')
+        return
+
+    def showEXIF(self):
+        print('show EXIF')
         return
