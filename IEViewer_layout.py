@@ -1,8 +1,9 @@
 import sys, errno
+import webbrowser
 from PIL import Image, ImageQt, ExifTags
-from PyQt5.QtCore import Qt, QEvent, QRect, QAbstractTableModel
-from PyQt5.QtGui import QPixmap, QImage, QTransform, QMouseEvent, QStatusTipEvent, QColor, QPalette
-from PyQt5.QtWidgets import QMainWindow, QLabel, QMenu, QMenuBar, QAction, QFileDialog, QMessageBox, QSizePolicy, QWidget, QTabWidget, QHBoxLayout, QVBoxLayout, QPushButton, QGridLayout, QScrollArea, QTableView, QTableWidget, QFrame, QTableWidgetItem
+from PyQt5.QtCore import Qt, QEvent, QRect, QAbstractTableModel, QAbstractItemModel
+from PyQt5.QtGui import QPixmap, QImage, QTransform, QMouseEvent, QStatusTipEvent, QColor, QPalette, QIcon
+from PyQt5.QtWidgets import QMainWindow, QLabel, QMenu, QMenuBar, QAction, QFileDialog, QMessageBox, QSizePolicy, QWidget, QTabWidget, QHBoxLayout, QVBoxLayout, QPushButton, QGridLayout, QScrollArea, QTableView, QTableWidget, QFrame, QTableWidgetItem, QHeaderView, QToolBar
 
 
 def initMenuBar(viewer):
@@ -19,7 +20,7 @@ def initMenuBar(viewer):
                         'Sep1': 'Separator',
                        },
                'View': {
-                        'ShowEXIF': QAction('Show &EXIF', viewer, shortcut='Ctrl+I', statusTip='Show EXIF data for the current image.', triggered=viewer.showEXIF, checkable=True),
+                        'ShowEXIF': QAction('Show &EXIF', viewer, shortcut='I', statusTip='Show EXIF data for the current image.', triggered=viewer.showEXIF, checkable=True),
                        },
                'Help': {'About': QAction('&About IEViewer', viewer, statusTip='Show version and license information.', triggered=viewer.about)  # TODO
                        },
@@ -72,43 +73,134 @@ def initStatusBar(viewer):
     return
 
 
+def OpenLink(item):
+    if 'http' in item.text():
+        webbrowser.open(item.text())
+
+    return
 
 
 # TODO
-def getSidebar():
-    frame = QFrame()
+def getSidebar(exif):
+    if exif is not None:
+        frame = QFrame()
 
+        layout_v = QVBoxLayout()
+        frame.setLayout(layout_v)
+
+        sidebar = QTableWidget()
+
+        # Graphic properties
+        sidebar.setRowCount(len(exif))
+        sidebar.setColumnCount(2)
+
+        sidebar.setHorizontalHeaderLabels(('Property', 'Value'))
+        sidebar.verticalHeader().setVisible(False)
+
+
+        i = 0
+        for key in exif:
+            sidebar.setItem(i, 0, QTableWidgetItem(key))
+            sidebar.setItem(i, 1, QTableWidgetItem(str(exif[key])))
+            i += 1
+
+        #sidebar.setMaximumWidth(50)  # TODO
+        sidebar.itemClicked.connect(OpenLink)
+
+        layout_v.addWidget(sidebar)
+
+        return frame
+
+    else:
+        return None
+
+
+
+
+def defaultLayout(viewer):  # TODO
+    layout_h = QHBoxLayout()
     layout_v = QVBoxLayout()
-    frame.setLayout(layout_v)
 
-    data = ['ciao', 'riciao', 'ciao3']
-    '''
-    labels = []
+    layout_v.setContentsMargins(0,0,0,0)
+    layout_h.setContentsMargins(0,0,0,0)
 
-    i = 0
-    for item in data:
-        labels.append(QLabel())
-        labels[i].setText(item)
-        layout_v.addWidget(labels[i])
-        i += 1
-    '''
+    viewer.menuBar().setMinimumHeight(viewer.menuBar().height() / 3 * 2)
+    viewer.menuBar().setMaximumHeight(viewer.menuBar().height() / 3 * 2)
 
-    sidebar = QTableWidget()
+    layout_v.addWidget(viewer.menuBar())
 
-    sidebar.verticalHeader().setVisible(False)
-    sidebar.horizontalHeader().setVisible(False)
+    layout_v.addWidget(viewer.toolbar)
 
-    sidebar.setRowCount(len(data))
-    sidebar.setColumnCount(2)
+    layout_h.addWidget(viewer.image_area)
+    #layout_v.addLayout(layout_h)
 
-    for i in range(0, len(data)):
-        sidebar.setItem(i, 0, QTableWidgetItem(data[i]))
+    widget = QWidget()
+    widget.setLayout(layout_h)
+
+    viewer.setCentralWidget(widget)
+
+    viewer.layout_type = 'default'
+
+    return
 
 
-    layout_v.addWidget(sidebar)
-    # frame.hide()  # TODO Uncomment
+def createToolbar(viewer):
 
-    return frame
+    openAction = QAction('&Open...', viewer, shortcut='Ctrl+O', statusTip='Open file.', triggered=viewer.openImage)
+
+    openAction.setIcon(QIcon('icons/open.png'))
+
+    saveAction = QAction(QIcon('icons/save.png'), "&Save", viewer)
+    exifAction = QAction('Show &EXIF', viewer, shortcut='I', statusTip='Show EXIF data for the current image.', triggered=viewer.showEXIF, checkable=True)
+    exifAction.setIcon(QIcon('icons/exif.png'))
+    exifAction.setEnabled(False)
+
+    copyAction = QAction(QIcon(":edit-copy.svg"), "&Copy", viewer)
+    pasteAction = QAction(QIcon(":edit-paste.svg"), "&Paste", viewer)
+    cutAction = QAction(QIcon(":edit-cut.svg"), "C&ut", viewer)
+
+    fileToolBar = QToolBar()
+    fileToolBar.addAction(openAction)
+    fileToolBar.addAction(saveAction)
+    fileToolBar.addAction(exifAction)
+
+    viewer.toolbar = viewer.addToolBar(fileToolBar)
+
+    return
+
+
+def exifLayout(viewer):  # TODO
+    viewer.sidebar = getSidebar(viewer.exif)
+
+    layout_h = QHBoxLayout()
+    layout_v = QVBoxLayout()
+
+    layout_v.setContentsMargins(0,0,0,0)
+    layout_h.setContentsMargins(0,0,0,0)
+    #layout_v.setSpacing(0)  # TODO È lo spazio a sinistra della sidebar
+
+    viewer.menuBar().setMinimumHeight(viewer.menuBar().height() / 3 * 2)
+
+    layout_v.addWidget(viewer.menuBar())
+
+    layout_h.addWidget(viewer.sidebar)
+    layout_h.addWidget(viewer.image_area)
+
+    layout_v.addLayout(layout_h)
+
+    widget = QWidget()
+    widget.setLayout(layout_v)
+
+    viewer.setCentralWidget(widget)
+
+    viewer.menuBar().setMaximumHeight(viewer.menuBar().height() / 3 * 2)
+
+    #layout_h.addWidget(viewer.sidebar)
+
+    viewer.layout_type = 'exif'
+
+    return
+
 
 
 def initImageArea(viewer):
@@ -119,40 +211,7 @@ def initImageArea(viewer):
     viewer.image_area.setAlignment(Qt.AlignCenter)  # Center image in the window area
     viewer.image_area.setMouseTracking(True)  # Get mouse position in image  # TODO
 
-    # TODO Prova layout
-    viewer.sidebar = getSidebar()
-
-    layout_h = QHBoxLayout()
-    layout_v = QVBoxLayout()
-
-    layout_v.setContentsMargins(0,0,0,0)
-    layout_h.setContentsMargins(0,0,0,0)
-    layout_v.setSpacing(0)  # TODO È lo spazio tra la menu bar e la parte sotto (immagine + exif)
-
-    #layout_h.addWidget(viewer.sidebar)
-
-
-    viewer.menuBar().setMinimumHeight(viewer.menuBar().height() / 3 * 2)
-    viewer.menuBar().setMaximumHeight(viewer.menuBar().height() / 3 * 2)
-
-    #layout_v.addWidget(viewer.menuBar())
-
-    layout_h.addWidget(viewer.sidebar)
-    layout_h.addWidget(viewer.image_area)
-    layout_v.addLayout(layout_h)
-
-
-    #viewer.setLayout(layout_v)
-    
-    widget = QWidget()
-    widget.setLayout(layout_v)
-
-    #sidebar.hide()  # TODO
-
-    #viewer.setCentralWidget(viewer.image_area)  # Set the image area as the central widget
-
-
-    viewer.setCentralWidget(widget)
+    defaultLayout(viewer)
 
 
     # Window properties
@@ -165,19 +224,117 @@ def initImageArea(viewer):
 class EXIFViewer(QMainWindow):
     def __init__(self, viewer):
         super().__init__()  # Initialize base class
-        print(viewer.exif)
 
         # Window properties
         self.setWindowTitle('EXIF data - ' + viewer.filename)  # Window title (the one in the title bar)
         self.resize(512, 256)  # These dimensions should be fine for most displays
 
 
+def buildLink(lat, latref, lon, lonref):
+    lat = tuple(lat)
+    lon = tuple(lon)
+
+    latitude = str(int(lat[0])) + '°' + str(int(lat[1])) + '\'' + str(lat[2]) + '\"' + latref
+    longitude = str(int(lon[0])) + '°' + str(int(lon[1])) + '\'' + str(lon[2]) + '\"' + lonref
+
+    link = 'https://www.google.com/maps/place/' + latitude + '+' + longitude
+
+    return link
+
+
+def processGPSData(exif):
+    gps_data = exif.get('GPSInfo')
+
+    if gps_data is not None:
+        gps = gps_data
+        new_gps = {}
+
+        # https://exiftool.org/TagNames/GPS.html
+
+        if gps.get(0) is not None:
+            new_gps['GPSVersionID'] = gps.get(0)
+        if gps.get(1) is not None:
+            new_gps['GPSLatitudeRef'] = gps.get(1)
+        if gps.get(2) is not None:
+            new_gps['GPSLatitude'] = gps.get(2)
+        if gps.get(3) is not None:
+            new_gps['GPSLongitudeRef'] = gps.get(3)
+        if gps.get(4) is not None:
+            new_gps['GPSLongitude'] = gps.get(4)
+        if gps.get(5) is not None:
+            new_gps['GPSAltitudeRef'] = gps.get(5)
+        if gps.get(6) is not None:
+            new_gps['GPSAltitude'] = gps.get(6)
+        if gps.get(7) is not None:
+            new_gps['GPSTimeStamp'] = gps.get(7)
+        if gps.get(8) is not None:
+            new_gps['GPSSatellites'] = gps.get(8)
+        if gps.get(9) is not None:
+            new_gps['GPSStatus'] = gps.get(9)
+        if gps.get(10) is not None:
+            new_gps['GPSMeasureMode'] = gps.get(10)
+        if gps.get(11) is not None:
+            new_gps['GPSDOP'] = gps.get(11)
+        if gps.get(12) is not None:
+            new_gps['GPSSpeedRef'] = gps.get(12)
+        if gps.get(13) is not None:
+            new_gps['GPSSpeed'] = gps.get(13)
+        if gps.get(14) is not None:
+            new_gps['GPSTrackRef'] = gps.get(14)
+        if gps.get(15) is not None:
+            new_gps['GPSTrack'] = gps.get(15)
+        if gps.get(16) is not None:
+            new_gps['GPSImgDirectionRef'] = gps.get(16)
+        if gps.get(17) is not None:
+            new_gps['GPSImgDirection'] = gps.get(17)
+        if gps.get(18) is not None:
+            new_gps['GPSMapDatum'] = gps.get(18)
+        if gps.get(19) is not None:
+            new_gps['GPSDestLatitudeRef'] = gps.get(19)
+        if gps.get(20) is not None:
+            new_gps['GPSDestLatitude'] = gps.get(20)
+        if gps.get(21) is not None:
+            new_gps['GPSDestLongitudeRef'] = gps.get(21)
+        if gps.get(22) is not None:
+            new_gps['GPSDestLongitude'] = gps.get(22)
+        if gps.get(23) is not None:
+            new_gps['GPSDestBearingRef'] = gps.get(23)
+        if gps.get(24) is not None:
+            new_gps['GPSDestBearing'] = gps.get(24)
+        if gps.get(25) is not None:
+            new_gps['GPSDestDistanceRef'] = gps.get(25)
+        if gps.get(26) is not None:
+            new_gps['GPSDestDistance'] = gps.get(26)
+        if gps.get(27) is not None:
+            new_gps['GPSProcessingMethod'] = gps.get(27)
+        if gps.get(28) is not None:
+            new_gps['GPSAreaInformation'] = gps.get(28)
+        if gps.get(29) is not None:
+            new_gps['GPSDateStamp'] = gps.get(29)
+        if gps.get(30) is not None:
+            new_gps['GPSDifferential'] = gps.get(30)
+        if gps.get(31) is not None:
+            new_gps['GPSHPositioningError'] = gps.get(31)
+
+        exif.pop('GPSInfo')
+        new_exif = {}
+
+        new_exif.update({'GPSLocation': buildLink(new_gps['GPSLatitude'], new_gps['GPSLatitudeRef'], new_gps['GPSLongitude'], new_gps['GPSLongitudeRef'])})
+        new_exif.update(new_gps)
+        new_exif.update(exif)
+
+        return new_exif
+
+    return exif
+
 
 
 class ImageViewer(QMainWindow):  # Image viewer main class
     def showEXIF(self):
         if self.disabledMenus['View'].isEnabled():
-            if self.disabledMenus['ShowEXIF'].isChecked():
+            if self.layout_type != 'exif':
+                exifLayout(self)
+            elif self.disabledMenus['ShowEXIF'].isChecked():
                 self.sidebar.show()
             else:
                 self.sidebar.hide()
@@ -188,6 +345,9 @@ class ImageViewer(QMainWindow):  # Image viewer main class
     # Constructor; initializes the main window object (the image viewer)
     def __init__(self):
         super().__init__()  # Initialize base class
+
+        self.exif = None
+        createToolbar(self)
 
         self.disabledMenus = initMenuBar(self)  # Initialize menu bar
         initImageArea(self)  # Initialize image area
@@ -249,6 +409,8 @@ class ImageViewer(QMainWindow):  # Image viewer main class
                 return
 
             self.exif = {ExifTags.TAGS[k]: v for k, v in self.image._getexif().items() if k in ExifTags.TAGS }
+            self.exif = processGPSData(self.exif)
+            self.sidebar = getSidebar(self.exif)
             self.image = ImageQt.ImageQt(self.image)  # Convert PIL image to a Qt image
 
             # Get original image size (dimensions are equal to zero for invalid image files)
