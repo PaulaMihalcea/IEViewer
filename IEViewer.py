@@ -1,7 +1,8 @@
 import sys, errno
+from PIL import Image, ExifTags
 from PyQt5.QtCore import Qt, QEvent, QRect
 from PyQt5.QtGui import QPixmap, QImage, QTransform, QMouseEvent
-from PyQt5.QtWidgets import QMainWindow, QLabel, QMenu, QMenuBar, QAction, QFileDialog, QMessageBox, QSizePolicy
+from PyQt5.QtWidgets import QMainWindow, QLabel, QMenu, QMenuBar, QAction, QFileDialog, QMessageBox, QSizePolicy, QWidget, QTabWidget, QHBoxLayout, QVBoxLayout, QPushButton
 
 
 def initMenuBar(viewer):
@@ -45,14 +46,13 @@ def initMenuBar(viewer):
             else:
                 menus[menu].addAction(actions[menu][action])
 
-
-
     # Add submenus
     # Image Rotation
     imageRotationMenu = menus['Edit'].addMenu('Ima&ge Rotation')
     imageRotationMenu.setDisabled(True)
+    menus['View'].setDisabled(True)
 
-    return {'ImageRotation': imageRotationMenu}
+    return {'ImageRotation': imageRotationMenu, 'View': menus['View']}
 
 
 def addDisabledSubmenus(viewer):
@@ -86,12 +86,30 @@ def initImageArea(viewer):
 
     return
 
+#TODO ############################################
+class EXIFViewer(QMainWindow):
+    def __init__(self, viewer):
+        super().__init__()  # Initialize base class
 
-def initEXIFDialog(viewer):
-    return
+        img = Image.open(viewer.image_path)
+        exif = {ExifTags.TAGS[k]: v for k, v in img._getexif().items() if k in ExifTags.TAGS }
+        print(exif)
+
+        # Window properties
+        self.setWindowTitle('EXIF data - ' + viewer.filename)  # Window title (the one in the title bar)
+        self.resize(512, 256)  # These dimensions should be fine for most displays
+
+
 
 
 class ImageViewer(QMainWindow):  # Image viewer main class
+    def showEXIF(self):  # TODO
+        if self.disabledMenus['View'].isEnabled():
+            self.exif = EXIFViewer(self)
+            self.exif.show()
+        return
+
+
     # __init__
     # Constructor; initializes the main window object (the image viewer)
     def __init__(self):
@@ -99,7 +117,7 @@ class ImageViewer(QMainWindow):  # Image viewer main class
 
         self.disabledMenus = initMenuBar(self)  # Initialize menu bar
         initImageArea(self)  # Initialize image area
-        initStatusBar(self)  # initialize status bar
+        initStatusBar(self)  # Initialize status bar
 
     # eventFilter
     # Event handler override needed to maintain the image aspect ratio correct when scaling the window
@@ -110,15 +128,15 @@ class ImageViewer(QMainWindow):  # Image viewer main class
             self.image_area.setPixmap(self.image_area.pixmap.scaled(self.image_area.width(), self.image_area.height(), aspectRatioMode=Qt.KeepAspectRatio, transformMode=Qt.SmoothTransformation))
             # Update new dimensions for later use
             self.image_area.w = self.image_area.width()
-            print(self.image_area.pixmap.width())
+            #print(self.image_area.pixmap.width())
             self.image_area.h = self.image_area.height()
             return True
 
         # Mouse tracking
         if event.type() == QEvent.MouseMove and event.buttons() == Qt.NoButton:  # TODO
-            print(self.image_area.pixmap.rect())
+            #print(self.image_area.pixmap.rect())
             posX = int(event.pos().x() - (self.width() + self.image_area.w) / 2 + self.image_area.w)
-            print(event.pos().x(), self.width(), self.image_area.w)
+            #print(event.pos().x(), self.width(), self.image_area.w)
             if posX >= 0 and posX <= self.image_area.w:
                 self.statusBar().showMessage(str(posX) + ', ' + str(event.pos().y()) + 'px')
             else:
@@ -136,15 +154,16 @@ class ImageViewer(QMainWindow):  # Image viewer main class
     # Open an image. Triggered from the "File" menu "Open..." button
     def openImage(self):
         # Open dialog to choose an image file (return an absolute path to the image)
-        image_path = QFileDialog.getOpenFileName(self, 'Open', '', 'Image Files (*.bmp; *.gif; *.jpg; *.jpeg; *.png; *.pbm; *.pgm; *.ppm; *.xbm; *.xpm)')[0]  # By omitting the directory argument (empty string, ''), the dialog should remember the last directory (depends on operating system)
+        self.image_path = QFileDialog.getOpenFileName(self, 'Open', '', 'Image Files (*.bmp; *.gif; *.jpg; *.jpeg; *.png; *.pbm; *.pgm; *.ppm; *.xbm; *.xpm)')[0]  # By omitting the directory argument (empty string, ''), the dialog should remember the last directory (depends on operating system)
 
         # Get file name from the absolute image path
-        filename = image_path.split('/')
-        filename = filename[len(filename)-1]
+        self.filename = self.image_path.split('/')
+        self.filename = self.filename[len(self.filename)-1]
 
-        if image_path:  # Only continues if a file has been chosen; if the user chose "Cancel" in the previous dialog, the program just returns to its default state
+        if self.image_path:  # Only continues if a file has been chosen; if the user chose "Cancel" in the previous dialog, the program just returns to its default state
             # Load image
-            image = QImage(image_path)
+            image = QImage(self.image_path)  # TODO prova a farlo con PIL per non duplicare il caricamento dell'immagine
+
 
             # Get original image size (dimensions are equal to zero for invalid image files)
             w = image.width()
@@ -188,10 +207,14 @@ class ImageViewer(QMainWindow):  # Image viewer main class
                 self.disabledMenus[key].setDisabled(False)
             addDisabledSubmenus(self)
 
+            # Update window title (the one in the title bar)
+            self.setWindowTitle('IEViewer - ' + self.filename)
+
         return
 
     def closeImage(self):
         print('close image')
+        self.setWindowTitle('IEViewer')  # Update window title (the one in the title bar)
         return
 
     # saveImage
@@ -242,8 +265,4 @@ class ImageViewer(QMainWindow):  # Image viewer main class
 
     def about(self):  # TODO
         print('about')
-        return
-
-    def showEXIF(self):
-        print('show EXIF')
         return
