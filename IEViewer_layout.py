@@ -1,8 +1,8 @@
 import sys, errno
 from PIL import Image, ImageQt, ExifTags
-from PyQt5.QtCore import Qt, QEvent, QRect
-from PyQt5.QtGui import QPixmap, QImage, QTransform, QMouseEvent, QStatusTipEvent, QColor
-from PyQt5.QtWidgets import QMainWindow, QLabel, QMenu, QMenuBar, QAction, QFileDialog, QMessageBox, QSizePolicy, QWidget, QTabWidget, QHBoxLayout, QVBoxLayout, QPushButton
+from PyQt5.QtCore import Qt, QEvent, QRect, QAbstractTableModel
+from PyQt5.QtGui import QPixmap, QImage, QTransform, QMouseEvent, QStatusTipEvent, QColor, QPalette
+from PyQt5.QtWidgets import QMainWindow, QLabel, QMenu, QMenuBar, QAction, QFileDialog, QMessageBox, QSizePolicy, QWidget, QTabWidget, QHBoxLayout, QVBoxLayout, QPushButton, QGridLayout, QScrollArea, QTableView, QTableWidget, QFrame, QTableWidgetItem
 
 
 def initMenuBar(viewer):
@@ -19,7 +19,7 @@ def initMenuBar(viewer):
                         'Sep1': 'Separator',
                        },
                'View': {
-                        'ShowEXIF': QAction('Show &EXIF', viewer, shortcut='Ctrl+I', statusTip='Show EXIF data for the current image.', triggered=viewer.showEXIF),
+                        'ShowEXIF': QAction('Show &EXIF', viewer, shortcut='Ctrl+I', statusTip='Show EXIF data for the current image.', triggered=viewer.showEXIF, checkable=True),
                        },
                'Help': {'About': QAction('&About IEViewer', viewer, statusTip='Show version and license information.', triggered=viewer.about)  # TODO
                        },
@@ -34,6 +34,7 @@ def initMenuBar(viewer):
 
     # Actual menu bar creation
     menu_bar = QMenuBar(viewer)
+    menu_bar.setNativeMenuBar(False)
     viewer.setMenuBar(menu_bar)
 
     # Menu and action assignment
@@ -53,7 +54,7 @@ def initMenuBar(viewer):
     imageRotationMenu.setDisabled(True)
     menus['View'].setDisabled(True)
 
-    return {'ImageRotation': imageRotationMenu, 'View': menus['View']}
+    return {'ImageRotation': imageRotationMenu, 'View': menus['View'], 'ShowEXIF': actions['View']['ShowEXIF']}
 
 
 def addDisabledSubmenus(viewer):
@@ -71,6 +72,45 @@ def initStatusBar(viewer):
     return
 
 
+
+
+# TODO
+def getSidebar():
+    frame = QFrame()
+
+    layout_v = QVBoxLayout()
+    frame.setLayout(layout_v)
+
+    data = ['ciao', 'riciao', 'ciao3']
+    '''
+    labels = []
+
+    i = 0
+    for item in data:
+        labels.append(QLabel())
+        labels[i].setText(item)
+        layout_v.addWidget(labels[i])
+        i += 1
+    '''
+
+    sidebar = QTableWidget()
+
+    sidebar.verticalHeader().setVisible(False)
+    sidebar.horizontalHeader().setVisible(False)
+
+    sidebar.setRowCount(len(data))
+    sidebar.setColumnCount(2)
+
+    for i in range(0, len(data)):
+        sidebar.setItem(i, 0, QTableWidgetItem(data[i]))
+
+
+    layout_v.addWidget(sidebar)
+    # frame.hide()  # TODO Uncomment
+
+    return frame
+
+
 def initImageArea(viewer):
     # Image area creation and properties
     viewer.image_area = QLabel(viewer)  # Create image area as a label
@@ -79,7 +119,41 @@ def initImageArea(viewer):
     viewer.image_area.setAlignment(Qt.AlignCenter)  # Center image in the window area
     viewer.image_area.setMouseTracking(True)  # Get mouse position in image  # TODO
 
-    viewer.setCentralWidget(viewer.image_area)  # Set the image area as the central widget
+    # TODO Prova layout
+    viewer.sidebar = getSidebar()
+
+    layout_h = QHBoxLayout()
+    layout_v = QVBoxLayout()
+
+    layout_v.setContentsMargins(0,0,0,0)
+    layout_h.setContentsMargins(0,0,0,0)
+    layout_v.setSpacing(0)  # TODO È lo spazio tra la menu bar e la parte sotto (immagine + exif)
+
+    #layout_h.addWidget(viewer.sidebar)
+
+
+    viewer.menuBar().setMinimumHeight(viewer.menuBar().height() / 3 * 2)
+    viewer.menuBar().setMaximumHeight(viewer.menuBar().height() / 3 * 2)
+
+    #layout_v.addWidget(viewer.menuBar())
+
+    layout_h.addWidget(viewer.sidebar)
+    layout_h.addWidget(viewer.image_area)
+    layout_v.addLayout(layout_h)
+
+
+    #viewer.setLayout(layout_v)
+    
+    widget = QWidget()
+    widget.setLayout(layout_v)
+
+    #sidebar.hide()  # TODO
+
+    #viewer.setCentralWidget(viewer.image_area)  # Set the image area as the central widget
+
+
+    viewer.setCentralWidget(widget)
+
 
     # Window properties
     viewer.setWindowTitle('IEViewer')  # Window title (the one in the title bar)
@@ -101,10 +175,12 @@ class EXIFViewer(QMainWindow):
 
 
 class ImageViewer(QMainWindow):  # Image viewer main class
-    def showEXIF(self):  # TODO
+    def showEXIF(self):
         if self.disabledMenus['View'].isEnabled():
-            self.exif = EXIFViewer(self)
-            self.exif.show()
+            if self.disabledMenus['ShowEXIF'].isChecked():
+                self.sidebar.show()
+            else:
+                self.sidebar.hide()
         return
 
 

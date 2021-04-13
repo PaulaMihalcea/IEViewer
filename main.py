@@ -1,7 +1,7 @@
 def main(args):  # TODO Implement args
     import sys
     from PyQt5.QtWidgets import QApplication
-    from IEViewer import ImageViewer
+    from IEViewer_layout  import ImageViewer
 
     app = QApplication(sys.argv)  # Note: There must be exactly one instance of QApplication active at a time
 
