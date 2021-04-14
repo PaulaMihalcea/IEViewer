@@ -1,9 +1,40 @@
-import sys, errno
+import sys, errno  # TODO Delete unnecessary imports
 import webbrowser
+from collections import OrderedDict
 from PIL import Image, ImageQt, ExifTags
 from PyQt5.QtCore import Qt, QEvent, QRect, QAbstractTableModel, QAbstractItemModel
 from PyQt5.QtGui import QPixmap, QImage, QTransform, QMouseEvent, QStatusTipEvent, QColor, QPalette, QIcon
-from PyQt5.QtWidgets import QMainWindow, QLabel, QMenu, QMenuBar, QAction, QFileDialog, QMessageBox, QSizePolicy, QWidget, QTabWidget, QHBoxLayout, QVBoxLayout, QPushButton, QGridLayout, QScrollArea, QTableView, QTableWidget, QFrame, QTableWidgetItem, QHeaderView, QToolBar
+from PyQt5.QtWidgets import QMainWindow, QLabel, QMenu, QMenuBar, QAction, QFileDialog, QMessageBox, QSizePolicy, QWidget, QTabWidget, QHBoxLayout, QVBoxLayout, QPushButton, QGridLayout, QScrollArea, QTableView, QTableWidget, QFrame, QTableWidgetItem, QHeaderView, QToolBar, QAbstractItemView, QStatusBar
+
+
+class ImageWidget(QLabel):
+    """QWidget for visualizing an image.
+
+    Attributes:
+        model: The model of the MVC pattern.
+        image_label: The QLabel that will contain the image
+    """
+
+    def __init__(self, model):
+        """Inits the class."""
+        super().__init__()
+
+        self.model = model
+
+        self.image_label = QLabel()
+
+        # Alignment and resizing
+        self.image_label.setAlignment(Qt.AlignCenter)
+        self.image_label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
+        self.image_label.setScaledContents(False)
+
+        # Additional settings
+        self.image_label.setMouseTracking(True)
+
+    def update_image_label(self):
+        """Updates the widget by drawing the actual image."""
+        # TODO
+
 
 class ExifWidget(QFrame):
     """QWidget for visualizing EXIF data.
@@ -55,3 +86,186 @@ class ExifWidget(QFrame):
         layout.addWidget(self.exif_table)
 
         self.setLayout(layout)
+
+
+class StatusBar(QStatusBar):
+    """Simple wrapper for the status bar. For consistency reasons.
+
+    Attributes:
+        text: The text displayed in the status bar.
+    """
+
+    def __init__(self):
+        """Inits the class."""
+        super().__init__()
+
+    def update(self, text):
+        """Updates the displayed text."""
+        self.showMessage(text)
+
+
+class MenuBar(QMenuBar):
+    """Menu bar widget.
+
+    Attributes:
+        model: The model of the MVC pattern.
+        menus: A dictionary containing the main menus (those listed in the bar), individually accessible,
+                as well as another dictionary containing their relative actions and separators.
+    """
+
+    def __init__(self, model):
+        """Inits the class."""
+        super().__init__()
+
+        self.model = model
+        self.menus = OrderedDict()
+
+        self.create_menus()
+        self.create_actions()
+
+        self.add_actions_to_menus()
+        self.add_menus()
+
+        self.setNativeMenuBar(False)
+
+    def create_menus(self):
+        """Creates the main menus (those listed in the bar)."""
+        self.menus['file'] = OrderedDict()
+        self.menus['file']['menu_'] = QMenu('&File')
+        self.menus['file']['menu_'].menuAction().setStatusTip('File options.')
+
+        self.menus['edit'] = OrderedDict()
+        self.menus['edit']['menu_'] = QMenu('&Edit')
+        self.menus['edit']['menu_'].menuAction().setStatusTip('Image editing options.')
+
+        self.menus['view'] = OrderedDict()
+        self.menus['view']['menu_'] = QMenu('&View')
+        self.menus['view']['menu_'].menuAction().setStatusTip('Interface options.')
+        #self.menus['view']['menu_'].setDisabled(True)  # TODO invoca dal controller
+
+        self.menus['help'] = OrderedDict()
+        self.menus['help']['menu_'] = QMenu('&Help')
+        self.menus['help']['menu_'].menuAction().setStatusTip('IEViewer information.')
+
+    def create_actions(self):
+        """Creates all available actions and submenus."""
+        # Open
+        self.menus['file']['open'] = QAction('&Open')
+        self.menus['file']['open'].setShortcut('Ctrl+O')
+        self.menus['file']['open'].setStatusTip('Open file.')
+        self.menus['file']['open'].triggered.connect(self.model.open_image)
+
+        # Separator
+        self.menus['file']['sep_1'] = QAction()
+        self.menus['file']['sep_1'].setSeparator(True)
+
+        # Close
+        self.menus['file']['close'] = QAction('&Close')
+        self.menus['file']['close'].setShortcut('Ctrl+W')
+        self.menus['file']['close'].setStatusTip('Close current file.')
+        self.menus['file']['close'].triggered.connect(self.model.close_image)
+
+        # Save
+        self.menus['file']['save'] = QAction('&Save')
+        self.menus['file']['save'].setShortcut('Ctrl+S')
+        self.menus['file']['save'].setStatusTip('Save file.')
+        self.menus['file']['save'].triggered.connect(self.model.save_image)
+
+        # Save As
+        self.menus['file']['saveas'] = QAction('Save &As...')
+        self.menus['file']['saveas'].setShortcut('Ctrl+Shift+S')
+        self.menus['file']['saveas'].setStatusTip('Save file with another name.')
+        self.menus['file']['saveas'].triggered.connect(self.model.save_as_image)
+
+        # Separator
+        self.menus['file']['sep_2'] = QAction()
+        self.menus['file']['sep_2'].setSeparator(True)
+
+        # Exit
+        self.menus['file']['exit'] = QAction('E&xit')
+        self.menus['file']['exit'].setShortcut('Ctrl+Q')
+        self.menus['file']['exit'].setStatusTip('Exit IEViewer.')
+        self.menus['file']['exit'].triggered.connect(self.model.exit)
+
+        # Image Rotation
+        self.menus['edit']['ir_submenu_'] = QMenu('Ima&ge Rotation')
+        self.menus['edit']['ir_submenu_'].menuAction().setStatusTip('Rotate image.')
+        # self.menus['edit']['ir_submenu_'].setDisabled(True)  # TODO invoca dal controller
+
+        # Rotate 180°
+        self.menus['edit']['ir_sub_rotate180'] = QAction('&180°')
+        self.menus['edit']['ir_sub_rotate180'].setShortcut('Ctrl+1')
+        self.menus['edit']['ir_sub_rotate180'].setStatusTip('Rotate image by 180 degrees.')
+
+        # Rotate 90° Clockwise
+        self.menus['edit']['ir_sub_rotate90c'] = QAction('&90° Clockwise')
+        self.menus['edit']['ir_sub_rotate90c'].setShortcut('Ctrl+2')
+        self.menus['edit']['ir_sub_rotate90c'].setStatusTip('Rotate image by 90 degrees (clockwise).')
+
+        # Rotate 90° Counter Clockwise
+        self.menus['edit']['ir_sub_rotate90cc'] = QAction('90° &Counter Clockwise')
+        self.menus['edit']['ir_sub_rotate90cc'].setShortcut('Ctrl+3')
+        self.menus['edit']['ir_sub_rotate90cc'].setStatusTip('Rotate image by 90 degrees (counter clockwise).')
+
+        # Separator
+        self.menus['edit']['sep_1'] = QAction()
+        self.menus['edit']['sep_1'].setSeparator(True)
+
+        # Reset Image
+        self.menus['edit']['resetimage'] = QAction('&Reset Image')
+        self.menus['edit']['resetimage'].setShortcut('Ctrl+0')
+        self.menus['edit']['resetimage'].setStatusTip('Reset image to default size and rotation.')
+        self.menus['edit']['resetimage'].triggered.connect(self.model.reset_image)
+
+        # Show EXIF
+        self.menus['view']['showexif'] = QAction('Show &EXIF')
+        self.menus['view']['showexif'].setShortcut('Ctrl+I')
+        self.menus['view']['showexif'].setStatusTip('Show EXIF data for the current image.')
+        self.menus['view']['showexif'].triggered.connect(self.model.show_exif)
+
+        # About
+        self.menus['help']['about'] = QAction('&About')
+        self.menus['help']['about'].setShortcut('F1')
+        self.menus['help']['about'].setStatusTip('About IEViewer.')
+        self.menus['help']['about'].triggered.connect(self.model.about)
+
+    def add_actions_to_menus(self):
+        """Adds previously created actions to the toolbar menus."""
+        current_submenu = None
+
+        for m in self.menus:
+            for a in self.menus[m]:
+                if a != 'menu_':  # Only actions are considered
+                    if 'submenu_' in a:  # Submenu
+                        if a != current_submenu:
+                            current_submenu = a
+                            self.menus[m]['menu_'].addMenu(self.menus[m][current_submenu])
+                    if 'sub_' in a:  # Submenu action
+                        if isinstance(self.menus[m][a], QAction):  # Add actions
+                            self.menus[m][current_submenu].addAction(self.menus[m][a])
+                        elif isinstance(self.menus[m][a], QMenu):  # Add submenus
+                            self.menus[m][current_submenu].addMenu(self.menus[m][a])
+                    else:  # Menu action
+                        if isinstance(self.menus[m][a], QAction):  # Add actions
+                            self.menus[m]['menu_'].addAction(self.menus[m][a])
+                        elif isinstance(self.menus[m][a], QMenu):  # Add submenus
+                            self.menus[m]['menu_'].addMenu(self.menus[m][a])
+
+    def add_menus(self):
+        """Adds previously created menus to the toolbar."""
+        for m in self.menus:
+            self.addMenu(self.menus[m]['menu_'])
+
+    def enable_item(self, menu, action=None):
+        """Enables a (disabled) menu, submenu or action."""
+        if action is None:
+            self.menus[menu]['menu_'].setEnabled(True)
+        else:
+            self.menus[menu][action].setEnabled(True)
+
+    def disable_item(self, menu, action=None):
+        """Disables a (enabled) menu, submenu or action."""
+        if action is None:
+            self.menus[menu]['menu_'].setEnabled(False)
+        else:
+            self.menus[menu][action].setEnabled(True)

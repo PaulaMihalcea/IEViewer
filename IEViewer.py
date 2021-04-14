@@ -4,88 +4,40 @@ from PIL import Image, ImageQt, ExifTags
 from PyQt5.QtCore import Qt, QEvent, QRect, QAbstractTableModel, QAbstractItemModel
 from PyQt5.QtGui import QPixmap, QImage, QTransform, QMouseEvent, QStatusTipEvent, QColor, QPalette, QIcon
 from PyQt5.QtWidgets import QMainWindow, QLabel, QMenu, QMenuBar, QAction, QFileDialog, QMessageBox, QSizePolicy, QWidget, QTabWidget, QHBoxLayout, QVBoxLayout, QPushButton, QGridLayout, QScrollArea, QTableView, QTableWidget, QFrame, QTableWidgetItem, QHeaderView, QToolBar
-from view import ExifWidget
+from view import ExifWidget, ImageWidget, StatusBar, MenuBar
+from model import processGPSData
 
 
 def initMenuBar(viewer):
-    # Actions
-    actions = {'File': {'Open': QAction('&Open...', viewer, shortcut='Ctrl+O', statusTip='Open file.', triggered=viewer.openImage),
-                        'Sep1': 'Separator',
-                        'Close': QAction('&Close', viewer, shortcut='Ctrl+W', statusTip='Close current file.', triggered=viewer.closeImage),  # TODO
-                        'Save': QAction('&Save', viewer, shortcut='Ctrl+S', statusTip='Save file.', triggered=viewer.saveImage),  # TODO
-                        'SaveAs': QAction('Save &As...', viewer, shortcut='Ctrl+Shift+S', statusTip='Save file with another name.', triggered=viewer.save_as_image),  # TODO
-                        'Sep2': 'Separator',
-                        'Exit': QAction('E&xit', viewer, shortcut='Ctrl+Q', statusTip='Exit IEViewer.', triggered=viewer.close),
-                       },
-               'Edit': {'ResetImage': QAction('&Reset Image', viewer, shortcut='Ctrl+0', statusTip='Reset image to default size and rotation.', triggered=viewer.resetImage),  # TODO Spostalo sotto Image Rotation
-                        'Sep1': 'Separator',
-                       },
-               'View': {
-                        'ShowEXIF': QAction('Show &EXIF', viewer, shortcut='I', statusTip='Show EXIF data for the current image.', triggered=viewer.showEXIF, checkable=True),
-                       },
-               'Help': {'About': QAction('&About IEViewer', viewer, statusTip='Show version and license information.', triggered=viewer.about)  # TODO
-                       },
-    }
 
-    # Menus
-    menus = {'File': QMenu('&File', viewer),  # File menu
-             'Edit': QMenu('&Edit', viewer),  # Edit menu
-             'View': QMenu('&View', viewer),  # View menu
-             'Help': QMenu('&Help', viewer),  # Help menu
-             }
+    menu_bar = MenuBar(viewer)
 
-    # Actual menu bar creation
-    menu_bar = QMenuBar(viewer)
-    menu_bar.setNativeMenuBar(False)
     viewer.setMenuBar(menu_bar)
 
-    # Menu and action assignment
-    for menu in menus:
-        menus[menu].menuAction().setStatusTip(menu + ' menu.')
-        viewer.menuBar().addMenu(menus[menu])
-        for action in actions[menu]:
-            # Add menu separators
-            if actions[menu][action] == 'Separator':
-                menus[menu].addSeparator()
-            else:
-                menus[menu].addAction(actions[menu][action])
+    imageRotationMenu = menu_bar.menus['edit']['ir_submenu_']
+    viewMenu = menu_bar.menus['view']['menu_']
+    showEXIF = None
 
-    # Add submenus
-    # Image Rotation
-    imageRotationMenu = menus['Edit'].addMenu('Ima&ge Rotation')
-    imageRotationMenu.setDisabled(True)
-    menus['View'].setDisabled(True)
-
-    return {'ImageRotation': imageRotationMenu, 'View': menus['View'], 'ShowEXIF': actions['View']['ShowEXIF']}
-
-
-def addDisabledSubmenus(viewer):
-    # Image Rotation
-    imageRotationMenu = viewer.disabledMenus['ImageRotation']
-    imageRotationMenu.addAction(QAction('&180°', viewer, shortcut='Ctrl+1', statusTip='Rotate image by 180 degrees.', triggered=viewer.rotateImage180))
-    imageRotationMenu.addAction(QAction('&90° Clockwise', viewer, shortcut='Ctrl+2', statusTip='Rotate image by 90 degrees (clockwise).', triggered=viewer.rotateImage90C))
-    imageRotationMenu.addAction(QAction('&90° Counter Clockwise', viewer, shortcut='Ctrl+3', statusTip='Rotate image by 90 degrees (counter clockwise).', triggered=viewer.rotateImage90CC))
-
-    return
+    return {'ImageRotation': imageRotationMenu, 'View': viewMenu, 'ShowEXIF': showEXIF}
 
 
 def initStatusBar(viewer):
-    viewer.statusBar().showMessage('Ready.')
-    return
+    status_bar = StatusBar()
+    viewer.setStatusBar(status_bar)
+
+    status_bar.update('Ready.')
 
 
 def OpenLink(item):
     if 'http' in item.text():
         webbrowser.open(item.text())
 
-    return
-
 
 # TODO
 def getSidebar(exif):
     try:  # TODO Test behavior on images without EXIF data.
         exif_table = ExifWidget(exif)
-        exif_table.exif_table.itemClicked.connect(OpenLink)
+        exif_table.exif_table.itemDoubleClicked.connect(OpenLink)
         return exif_table
     except (TypeError, ValueError):
         return None
@@ -123,12 +75,13 @@ def defaultLayout(viewer):  # TODO
 
 def createToolbar(viewer):
 
-    openAction = QAction('&Open...', viewer, shortcut='Ctrl+O', statusTip='Open file.', triggered=viewer.openImage)
+    openAction = QAction('&Open...', viewer, shortcut='Ctrl+O', statusTip='Open file.', triggered=viewer.open_image)
 
-    openAction.setIcon(QIcon('icons/open.png'))
+    active = True
+    openAction.setIcon(QIcon("icons/open.png") if active else QIcon("icons/info.png"))
 
     saveAction = QAction(QIcon('icons/save.png'), "&Save", viewer)
-    exifAction = QAction('Show &EXIF', viewer, shortcut='I', statusTip='Show EXIF data for the current image.', triggered=viewer.showEXIF, checkable=True)
+    exifAction = QAction('Show &EXIF', viewer, shortcut='I', statusTip='Show EXIF data for the current image.', triggered=viewer.show_exif, checkable=True)
     exifAction.setIcon(QIcon('icons/exif.png'))
     #exifAction.setEnabled(False)  # TODO
 
@@ -193,13 +146,6 @@ def initImageArea(viewer):
     viewer.image_area.setAlignment(Qt.AlignCenter)  # Center image in the window area
     viewer.image_area.setMouseTracking(True)  # Get mouse position in image  # TODO
 
-    defaultLayout(viewer)
-
-
-    # Window properties
-    viewer.setWindowTitle('IEViewer')  # Window title (the one in the title bar)
-    viewer.resize(512, 256)  # These default dimensions should be fine for most displays
-
     return
 
 #TODO ############################################
@@ -212,107 +158,9 @@ class EXIFViewer(QMainWindow):
         self.resize(512, 256)  # These dimensions should be fine for most displays
 
 
-def buildLink(lat, latref, lon, lonref):
-    lat = tuple(lat)
-    lon = tuple(lon)
-
-    latitude = str(int(lat[0])) + '°' + str(int(lat[1])) + '\'' + str(lat[2]) + '\"' + latref
-    longitude = str(int(lon[0])) + '°' + str(int(lon[1])) + '\'' + str(lon[2]) + '\"' + lonref
-
-    link = 'https://www.google.com/maps/place/' + latitude + '+' + longitude
-
-    return link
-
-
-def processGPSData(exif):
-    gps_data = exif.get('GPSInfo')
-
-    if gps_data is not None:
-        gps = gps_data
-        new_gps = {}
-
-        # https://exiftool.org/TagNames/GPS.html
-
-        if gps.get(0) is not None:
-            new_gps['GPSVersionID'] = gps.get(0)
-        if gps.get(1) is not None:
-            new_gps['GPSLatitudeRef'] = gps.get(1)
-        if gps.get(2) is not None:
-            new_gps['GPSLatitude'] = gps.get(2)
-        if gps.get(3) is not None:
-            new_gps['GPSLongitudeRef'] = gps.get(3)
-        if gps.get(4) is not None:
-            new_gps['GPSLongitude'] = gps.get(4)
-        if gps.get(5) is not None:
-            new_gps['GPSAltitudeRef'] = gps.get(5)
-        if gps.get(6) is not None:
-            new_gps['GPSAltitude'] = gps.get(6)
-        if gps.get(7) is not None:
-            new_gps['GPSTimeStamp'] = gps.get(7)
-        if gps.get(8) is not None:
-            new_gps['GPSSatellites'] = gps.get(8)
-        if gps.get(9) is not None:
-            new_gps['GPSStatus'] = gps.get(9)
-        if gps.get(10) is not None:
-            new_gps['GPSMeasureMode'] = gps.get(10)
-        if gps.get(11) is not None:
-            new_gps['GPSDOP'] = gps.get(11)
-        if gps.get(12) is not None:
-            new_gps['GPSSpeedRef'] = gps.get(12)
-        if gps.get(13) is not None:
-            new_gps['GPSSpeed'] = gps.get(13)
-        if gps.get(14) is not None:
-            new_gps['GPSTrackRef'] = gps.get(14)
-        if gps.get(15) is not None:
-            new_gps['GPSTrack'] = gps.get(15)
-        if gps.get(16) is not None:
-            new_gps['GPSImgDirectionRef'] = gps.get(16)
-        if gps.get(17) is not None:
-            new_gps['GPSImgDirection'] = gps.get(17)
-        if gps.get(18) is not None:
-            new_gps['GPSMapDatum'] = gps.get(18)
-        if gps.get(19) is not None:
-            new_gps['GPSDestLatitudeRef'] = gps.get(19)
-        if gps.get(20) is not None:
-            new_gps['GPSDestLatitude'] = gps.get(20)
-        if gps.get(21) is not None:
-            new_gps['GPSDestLongitudeRef'] = gps.get(21)
-        if gps.get(22) is not None:
-            new_gps['GPSDestLongitude'] = gps.get(22)
-        if gps.get(23) is not None:
-            new_gps['GPSDestBearingRef'] = gps.get(23)
-        if gps.get(24) is not None:
-            new_gps['GPSDestBearing'] = gps.get(24)
-        if gps.get(25) is not None:
-            new_gps['GPSDestDistanceRef'] = gps.get(25)
-        if gps.get(26) is not None:
-            new_gps['GPSDestDistance'] = gps.get(26)
-        if gps.get(27) is not None:
-            new_gps['GPSProcessingMethod'] = gps.get(27)
-        if gps.get(28) is not None:
-            new_gps['GPSAreaInformation'] = gps.get(28)
-        if gps.get(29) is not None:
-            new_gps['GPSDateStamp'] = gps.get(29)
-        if gps.get(30) is not None:
-            new_gps['GPSDifferential'] = gps.get(30)
-        if gps.get(31) is not None:
-            new_gps['GPSHPositioningError'] = gps.get(31)
-
-        exif.pop('GPSInfo')
-        new_exif = {}
-
-        new_exif.update({'GPSLocation': buildLink(new_gps['GPSLatitude'], new_gps['GPSLatitudeRef'], new_gps['GPSLongitude'], new_gps['GPSLongitudeRef'])})
-        new_exif.update(new_gps)
-        new_exif.update(exif)
-
-        return new_exif
-
-    return exif
-
-
 
 class ImageViewer(QMainWindow):  # Image viewer main class
-    def showEXIF(self):
+    def show_exif(self):
         if self.disabledMenus['View'].isEnabled():
             if self.layout_type != 'exif':
                 exifLayout(self)
@@ -333,6 +181,12 @@ class ImageViewer(QMainWindow):  # Image viewer main class
 
         self.disabledMenus = initMenuBar(self)  # Initialize menu bar
         initImageArea(self)  # Initialize image area
+        defaultLayout(self)
+
+
+        # Window properties
+        self.setWindowTitle('IEViewer')  # Window title (the one in the title bar)
+        self.resize(512, 256)  # These default dimensions should be fine for most displays
         initStatusBar(self)  # Initialize status bar
 
     def event(self, e):  # TODO
@@ -374,7 +228,7 @@ class ImageViewer(QMainWindow):  # Image viewer main class
 
     # openImage
     # Open an image. Triggered from the "File" menu "Open..." button
-    def openImage(self):
+    def open_image(self):
         # Open dialog to choose an image file (return an absolute path to the image)
         self.image_path = QFileDialog.getOpenFileName(self, 'Open', '', 'Image Files (*.bmp; *.gif; *.jpg; *.jpeg; *.png; *.pbm; *.pgm; *.ppm; *.xbm; *.xpm)')[0]  # By omitting the directory argument (empty string, ''), the dialog should remember the last directory (depends on operating system)
 
@@ -435,20 +289,24 @@ class ImageViewer(QMainWindow):  # Image viewer main class
             # Activate disabled menus
             for key in self.disabledMenus:
                 self.disabledMenus[key].setDisabled(False)
-            addDisabledSubmenus(self)
+            # addDisabledSubmenus(self)  # TODO
 
             # Update window title (the one in the title bar)
             self.setWindowTitle('IEViewer - ' + self.filename)
 
         return
 
-    def closeImage(self):
+    def close_image(self):
         print('close image')
         self.setWindowTitle('IEViewer')  # Update window title (the one in the title bar)
         return
 
+    def exit(self):
+        print('exit program has not been implemented yet')
+        return
+
     # saveImage
-    def saveImage(self):  # TODO
+    def save_image(self):  # TODO
         print('save')
         return
 
@@ -489,7 +347,7 @@ class ImageViewer(QMainWindow):  # Image viewer main class
         self.image_area.pixmap = QPixmap(pixmap)
         return
 
-    def resetImage(self):
+    def reset_image(self):
         print('reset image')
         return
 
