@@ -16,7 +16,7 @@ def initMenuBar(viewer):
 
     imageRotationMenu = menu_bar.menus['edit']['ir_submenu_']
     viewMenu = menu_bar.menus['view']['menu_']
-    showEXIF = None
+    showEXIF = menu_bar.menus['view']['showexif']
 
     return {'ImageRotation': imageRotationMenu, 'View': viewMenu, 'ShowEXIF': showEXIF}
 
@@ -349,6 +349,14 @@ class ImageViewer(QMainWindow):  # Image viewer main class
 
     def reset_image(self):
         print('reset image')
+        return
+
+    def prev_image(self):
+        print('prev image')
+        return
+
+    def next_image(self):
+        print('next image')
         return
 
     def about(self):  # TODO
