@@ -1,3 +1,12 @@
+class ImageModel():
+    def __init__(self):
+        """Inits the class."""
+        print('ciao')
+
+    def get_exif_data(self):
+        # TODO
+        return None
+
 def buildLink(lat, latref, lon, lonref):
     lat = tuple(lat)
     lon = tuple(lon)

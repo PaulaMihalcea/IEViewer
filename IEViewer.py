@@ -3,8 +3,8 @@ import webbrowser
 from PIL import Image, ImageQt, ExifTags
 from PyQt5.QtCore import Qt, QEvent, QRect, QAbstractTableModel, QAbstractItemModel
 from PyQt5.QtGui import QPixmap, QImage, QTransform, QMouseEvent, QStatusTipEvent, QColor, QPalette, QIcon
-from PyQt5.QtWidgets import QMainWindow, QLabel, QMenu, QMenuBar, QAction, QFileDialog, QMessageBox, QSizePolicy, QWidget, QTabWidget, QHBoxLayout, QVBoxLayout, QPushButton, QGridLayout, QScrollArea, QTableView, QTableWidget, QFrame, QTableWidgetItem, QHeaderView, QToolBar
-from view import ExifWidget, ImageWidget, StatusBar, MenuBar
+from PyQt5.QtWidgets import QMainWindow, QLabel, QMenu, QMenuBar, QAction, QFileDialog, QMessageBox, QSizePolicy, QWidget, QTabWidget, QHBoxLayout, QVBoxLayout, QPushButton, QGridLayout, QScrollArea, QTableView, QTableWidget, QFrame, QTableWidgetItem, QHeaderView, QToolBar, QLayout
+from view_elements import ExifWidget, ImageWidget, StatusBar, MenuBar, ToolBar, Layout
 from model import processGPSData
 
 
@@ -12,7 +12,9 @@ def initMenuBar(viewer):
 
     menu_bar = MenuBar(viewer)
 
-    viewer.setMenuBar(menu_bar)
+    viewer.menu_bar = menu_bar
+
+    #viewer.setMenuBar(menu_bar)  # TODO uncomment
 
     imageRotationMenu = menu_bar.menus['edit']['ir_submenu_']
     viewMenu = menu_bar.menus['view']['menu_']
@@ -22,18 +24,20 @@ def initMenuBar(viewer):
 
 
 def initStatusBar(viewer):
-    status_bar = StatusBar()
-    viewer.setStatusBar(status_bar)
+    # TODO forse implementa come funzione della view
+    status_bar = StatusBar(viewer)
+    viewer.status_bar = status_bar
+    viewer.status_bar = viewer.setStatusBar(status_bar)
 
     status_bar.update('Ready.')
 
 
-def OpenLink(item):
+def OpenLink(item):  # TODO Dove va messo?
     if 'http' in item.text():
         webbrowser.open(item.text())
 
 
-# TODO
+
 def getSidebar(exif):
     try:  # TODO Test behavior on images without EXIF data.
         exif_table = ExifWidget(exif)
@@ -42,30 +46,19 @@ def getSidebar(exif):
     except (TypeError, ValueError):
         return None
 
+def createToolbar(viewer):
+    viewer.tool_bar = viewer.addToolBar(ToolBar(viewer))
+    return
 
+def defaultLayout(viewer):
 
+    layout = Layout(viewer)
+    viewer.layout = layout
 
-def defaultLayout(viewer):  # TODO
-    layout_h = QHBoxLayout()
-    layout_v = QVBoxLayout()
+    layout_default = layout.get_default_layout()
 
-    layout_v.setContentsMargins(0,0,0,0)
-    layout_h.setContentsMargins(0,0,0,0)
-
-    viewer.menuBar().setMinimumHeight(viewer.menuBar().height() / 3 * 2)
-    viewer.menuBar().setMaximumHeight(viewer.menuBar().height() / 3 * 2)
-
-    layout_v.addWidget(viewer.menuBar())
-    layout_v.addWidget(viewer.toolbar)
-
-    #layout_h.addWidget(viewer.image_area)
-    layout_v.addWidget(viewer.image_area)
-
-    #widget = QWidget()
-    #widget.setLayout(layout_v)
-
-    #viewer.setCentralWidget(widget)
-    viewer.setLayout(layout_v)
+    viewer.setLayout(layout_default)
+    layout_default2 = QVBoxLayout(viewer)
     viewer.setCentralWidget(viewer.image_area)
 
     viewer.layout_type = 'default'
@@ -73,33 +66,11 @@ def defaultLayout(viewer):  # TODO
     return
 
 
-def createToolbar(viewer):
 
-    openAction = QAction('&Open...', viewer, shortcut='Ctrl+O', statusTip='Open file.', triggered=viewer.open_image)
-
-    active = True
-    openAction.setIcon(QIcon("icons/open.png") if active else QIcon("icons/info.png"))
-
-    saveAction = QAction(QIcon('icons/save.png'), "&Save", viewer)
-    exifAction = QAction('Show &EXIF', viewer, shortcut='I', statusTip='Show EXIF data for the current image.', triggered=viewer.show_exif, checkable=True)
-    exifAction.setIcon(QIcon('icons/exif.png'))
-    #exifAction.setEnabled(False)  # TODO
-
-    copyAction = QAction(QIcon(":edit-copy.svg"), "&Copy", viewer)
-    pasteAction = QAction(QIcon(":edit-paste.svg"), "&Paste", viewer)
-    cutAction = QAction(QIcon(":edit-cut.svg"), "C&ut", viewer)
-
-    fileToolBar = QToolBar()
-    fileToolBar.addAction(openAction)
-    fileToolBar.addAction(saveAction)
-    fileToolBar.addAction(exifAction)
-
-    viewer.toolbar = viewer.addToolBar(fileToolBar)
-
-    return
 
 
 def exifLayout(viewer):  # TODO
+    '''
     viewer.sidebar = getSidebar(viewer.exif)
 
     layout_h = QHBoxLayout()
@@ -112,7 +83,7 @@ def exifLayout(viewer):  # TODO
     viewer.menuBar().setMinimumHeight(viewer.menuBar().height() / 3 * 2)
 
     layout_v.addWidget(viewer.menuBar())
-    layout_v.addWidget(viewer.toolbar)
+    layout_v.addWidget(viewer.tool_bar)
 
     #viewer.sidebar.show()
 
@@ -131,7 +102,16 @@ def exifLayout(viewer):  # TODO
 
     #layout_h.addWidget(viewer.sidebar)
 
+    '''
 
+    layout = Layout(viewer)
+    viewer.layout = layout
+
+    exif_layout = layout.get_exif_layout()
+    #exif_layout.addLayout(viewer.exif_area)
+
+    viewer.setLayout(exif_layout)
+    viewer.setCentralWidget(viewer.image_area)
 
     viewer.layout_type = 'exif'
 
@@ -141,10 +121,11 @@ def exifLayout(viewer):  # TODO
 def initImageArea(viewer):
     # Image area creation and properties
     viewer.image_area = QLabel(viewer)  # Create image area as a label
-    viewer.image_area.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)  # Allow complete control over resizing the window (Expanding does not allow resizing to a smaller size)
-    viewer.image_area.setScaledContents(False)  # Avoid stretching the image
-    viewer.image_area.setAlignment(Qt.AlignCenter)  # Center image in the window area
-    viewer.image_area.setMouseTracking(True)  # Get mouse position in image  # TODO
+
+    # viewer.image_area.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)  # Allow complete control over resizing the window (Expanding does not allow resizing to a smaller size)
+    # viewer.image_area.setScaledContents(False)  # Avoid stretching the image
+    # viewer.image_area.setAlignment(Qt.AlignCenter)  # Center image in the window area
+    # viewer.image_area.setMouseTracking(True)  # Get mouse position in image  # TODO
 
     return
 
@@ -177,17 +158,30 @@ class ImageViewer(QMainWindow):  # Image viewer main class
         super().__init__()  # Initialize base class
 
         self.exif = None
+
+        #self.disabledMenus = initMenuBar(self)  # Initialize menu bar
+
+        '''
+        # STUFF DISABLED OFR LAYOUT TESTING
         createToolbar(self)
-
-        self.disabledMenus = initMenuBar(self)  # Initialize menu bar
         initImageArea(self)  # Initialize image area
-        defaultLayout(self)
-
+        initStatusBar(self)  # Initialize status bar
+        '''
 
         # Window properties
         self.setWindowTitle('IEViewer')  # Window title (the one in the title bar)
         self.resize(512, 256)  # These default dimensions should be fine for most displays
-        initStatusBar(self)  # Initialize status bar
+
+
+        self.menu_bar = MenuBar(self)
+        self.tool_bar = ToolBar(self)
+        self.image_area = ImageWidget(self)
+        self.status_bar = StatusBar(self)
+
+
+        defaultLayout(self)  # TODO LAYOUTDIS
+        self.setCentralWidget(self.image_area)
+        #self.setLayout(Layout(self).get_default_layout())
 
     def event(self, e):  # TODO
         if e.type() == QEvent.StatusTip:
@@ -247,6 +241,7 @@ class ImageViewer(QMainWindow):  # Image viewer main class
             self.exif = {ExifTags.TAGS[k]: v for k, v in self.image._getexif().items() if k in ExifTags.TAGS }
             self.exif = processGPSData(self.exif)
             self.sidebar = getSidebar(self.exif)
+            self.exif_area = getSidebar(self.exif)
             self.image = ImageQt.ImageQt(self.image)  # Convert PIL image to a Qt image
 
             # Get original image size (dimensions are equal to zero for invalid image files)
