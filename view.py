@@ -21,6 +21,9 @@ class View(Subject, QMainWindow):
         Subject.__init__(self)
         QMainWindow.__init__(self)
 
+        # TODO
+        self.set_state('no_image')
+
         # Set model
         self.model = model
 
@@ -30,6 +33,10 @@ class View(Subject, QMainWindow):
         self.exif_area = ExifWidget(self)
         self.image_area = ImageWidget(self)
         self.status_bar = StatusBar(self)
+
+        # Disable GUI elements that are unavailable when no image is opened
+        self.menu_bar.disable_widgets()
+        self.exif_area.hide()
 
         # Set layout
         self.setCentralWidget(Layout(self).central_widget)
@@ -43,33 +50,23 @@ class View(Subject, QMainWindow):
         self.resize(512, 256)  # These default dimensions should be fine for most displays
 
     def get_file_dialog(self, caption, filter):
-        file_path =  QFileDialog.getOpenFileName(caption=caption, directory='', filter=filter)[0]  # By omitting the directory argument (empty string, ''), the dialog should remember the last directory (depends on operating system)
-        return file_path
+        file_path, _ = QFileDialog.getOpenFileName(caption=caption, directory='', filter=filter)  # By omitting the directory argument (empty string, ''), the dialog should remember the last directory (depends on operating system)
+        if file_path == '':
+            return None
+        else:
+            return file_path
 
     def show_message_box(self, title, text):
         info_box = QMessageBox(self)
         info_box.setIcon(QMessageBox.Information)
         info_box.setWindowTitle(title)
         info_box.setText(text)
-        info_box.exec_()
-
-    # eventFilter  # TODO documentazione
-    # Event handler override needed to maintain the image aspect ratio correct when scaling the window
-    # And also to show current mouse position in the status bar
-    def eventFilter(self, widget, event):
-        # Window resize
-        if event.type() == QEvent.Resize and widget is self.image_area:  # The resizing filter is only applied to the image area label
-            self.image_area.setPixmap(self.image_area.pixmap.scaled(self.image_area.width(), self.image_area.height(), aspectRatioMode=Qt.KeepAspectRatio, transformMode=Qt.SmoothTransformation))
-            # Update new dimensions for later use
-            self.image_area.w = self.image_area.width()
-            self.image_area.h = self.image_area.height()
-            return True
-
-        return QMainWindow.eventFilter(self, widget, event)
 
     def open(self):
         self.set_state('open')  # Load image
+        self.menu_bar.enable_widgets()
 
+    def load_image(self):
         width = self.model.image.width()
         height = self.model.image.height()
 
@@ -84,27 +81,22 @@ class View(Subject, QMainWindow):
             w = width
             h = height
 
-        # Store new dimensions for later use
-        self.image_area.w = w
-        self.image_area.h = h
+        self.image_area.set_image(self.model.image, w, h)
 
-        # Resize image area and window
-        self.image_area.resize(w, self.menuBar().height() + self.statusBar().height() + h)
+        self.image_area.resize(self.image_area.w, self.menuBar().height() + self.statusBar().height() + self.image_area.h)
         if w < 280:  # Set a minimum window width so as to correctly display the window title and menu bar; 280px should be good
             self.resize(280, self.menuBar().height() + self.statusBar().height() + h)
         else:
             self.resize(w, self.menuBar().height() + self.statusBar().height() + h)
 
-        # Add pixmap from image and resize it accordingly
-        pixmap = QPixmap.fromImage(self.model.image).scaled(w, h, aspectRatioMode=Qt.KeepAspectRatio, transformMode=Qt.SmoothTransformation)
-        self.image_area.setPixmap(pixmap)
-        self.image_area.pixmap = QPixmap(pixmap)
-        self.image_area.installEventFilter(self)  # Install the new event handler
+        # EXIF data
+        self.exif_area.load_exif(self)
 
         # Update window title (the one in the title bar)
         self.setWindowTitle('IEViewer - ' + self.model.filename)
 
-
+        # Subject state
+        self.set_state('one_image')
 
     def save(self):
         self.set_state('save')
@@ -114,6 +106,9 @@ class View(Subject, QMainWindow):
 
     def close(self):
         self.set_state('close')
+        self.setWindowTitle('IEViewer')
+        self.image_area.clear_image()
+        self.menu_bar.disable_widgets()
 
     def exit(self):
         self.set_state('exit')
@@ -137,7 +132,12 @@ class View(Subject, QMainWindow):
         self.set_state('next_image')
 
     def show_exif(self):
-        self.set_state('show_exif')
+        if self.exif_area.isHidden():
+            self.exif_area.show()
+            self.image_area.hide()
+        else:
+            self.exif_area.hide()
+            self.image_area.show()
 
     def about(self):
         self.set_state('about')

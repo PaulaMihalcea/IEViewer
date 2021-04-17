@@ -16,7 +16,7 @@ class Subject:
 
     def notify_observers(self):
         for o in self.observers:
-            o.update(self.state)
+            o.update()
 
 
 class Observer:
@@ -24,5 +24,5 @@ class Observer:
         self.subject = subject
         self.subject.attach(self)
 
-    def update(self, state):
+    def update(self):
         pass

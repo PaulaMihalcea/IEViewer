@@ -1,5 +1,5 @@
 from PIL import ImageQt, ExifTags
-
+# TODO documentazione
 
 class ImageModel():
     def __init__(self):
@@ -9,11 +9,12 @@ class ImageModel():
         self.filename = None
 
     def load_image(self, image, filename):
-        self.exif_data = {ExifTags.TAGS[k]: v for k, v in image._getexif().items() if k in ExifTags.TAGS}
-        self.image = ImageQt.ImageQt(image)
         self.filename = filename
+        self.image = ImageQt.ImageQt(image)
 
-        self.set_gps_data()
+        if image._getexif() is not None:
+            self.exif_data = {ExifTags.TAGS[k]: v for k, v in image._getexif().items() if k in ExifTags.TAGS}
+            self.set_gps_data()
 
     def close_image(self):
         self.image = None

@@ -12,7 +12,6 @@ class ImageWidget(QLabel):
 
     Attributes:
         view: The view of the MVC pattern.
-        image_area: The QLabel that will contain the image.
     """
 
     def __init__(self, view):
@@ -20,8 +19,10 @@ class ImageWidget(QLabel):
         super().__init__()
 
         self.view = view
-
-        self.image_area = QLabel()
+        self.image = None
+        self.pixmap = None
+        self.w = 0
+        self.h = 0
 
         # Alignment and resizing
         self.setAlignment(Qt.AlignCenter)
@@ -29,11 +30,36 @@ class ImageWidget(QLabel):
         self.setScaledContents(False)
 
         # Additional settings
-        self.image_area.setMouseTracking(True)
+        self.setMouseTracking(True)
 
-    def update_image_label(self):
+    def set_image(self, image, width, height):
         """Updates the widget by drawing the actual image."""
-        # TODO
+        # TODO documentazione
+        self.w = width
+        self.h = height
+
+        self.installEventFilter(self)  # Install the new event handler
+
+        # Add pixmap from image and resize it accordingly
+        pixmap = QPixmap.fromImage(image).scaled(self.w, self.h, aspectRatioMode=Qt.KeepAspectRatio, transformMode=Qt.SmoothTransformation)
+        self.setPixmap(pixmap)
+        self.pixmap = QPixmap(pixmap)
+
+    def clear_image(self):
+        self.clear()
+        self.update()
+        self.pixmap = None
+        self.w = 0
+        self.h = 0
+
+    def eventFilter(self, widget, event):
+        if event.type() == QEvent.Resize and widget is self and self.pixmap is not None:  # The resizing filter is only applied to the image area label
+            self.setPixmap(self.pixmap.scaled(self.width(), self.height(), aspectRatioMode=Qt.KeepAspectRatio, transformMode=Qt.SmoothTransformation))
+            # Update new dimensions for later use
+            self.w = self.width()
+            self.h = self.height()
+            return True
+        return QMainWindow.eventFilter(self, widget, event)
 
 
 class ExifWidget(QFrame):
@@ -52,10 +78,17 @@ class ExifWidget(QFrame):
         super().__init__()
 
         self.view = view
-        self.exif_data = view.model.exif_data
+        self.exif_data = None
 
-        if self.exif_data is not None:  # TODO Test behavior on images without EXIF data.
+    def load_exif(self, view):
+        self.exif_data = view.model.exif_data
+        if self.exif_data is not None:
             self.get_table()
+            self.set_layout()
+        else:
+            self.exif_table = QLabel()
+            self.exif_table.setText('No EXIF data available for this image.')
+            self.exif_table.setAlignment(Qt.AlignCenter)
             self.set_layout()
 
     def get_table(self):
