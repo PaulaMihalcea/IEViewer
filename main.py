@@ -1,27 +1,19 @@
-def main(args):  # TODO Implement args
-    import sys
-    from PyQt5.QtWidgets import QApplication
-    from PyQt5.QtGui import QIcon
-    from view import ImageViewer
-    from model import ImageModel
+import sys
+from PyQt5.QtWidgets import QApplication
+from PyQt5.QtGui import QIcon
+from model import ImageModel
+from view import View
+from controller import Controller
 
-    app = QApplication(sys.argv)  # Note: There must be exactly one instance of QApplication active at a time
-    app.setWindowIcon(QIcon('icons/ieviewer.png'))
+app = QApplication(sys.argv)  # Note: There must be exactly one instance of QApplication active at a time
+app.setWindowIcon(QIcon('icons/ieviewer.png'))
 
-    model = ImageModel()
+model = ImageModel()
+view = View(model)
 
-    imageViewer = ImageViewer(model)
-    imageViewer.show()
+controller = Controller(model, view)
 
-    sys.exit(app.exec_())
+main_window = controller.get_main_window()
+main_window.show()
 
-
-if __name__ == '__main__':
-    from argparse import ArgumentParser
-
-    parser = ArgumentParser(description='A simple Python image & EXIF data viewer.')
-    parser.add_argument('-p', '--path', help='Path of the image to be opened.')
-
-    args = parser.parse_args()
-
-    main(args)
+sys.exit(app.exec_())

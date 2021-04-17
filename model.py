@@ -1,107 +1,125 @@
+from PIL import ImageQt, ExifTags
+
+
 class ImageModel():
     def __init__(self):
         """Inits the class."""
-        print('ciao')
+        self.image = None
+        self.exif_data = None
+        self.filename = None
 
-    def get_exif_data(self):
-        # TODO
-        return None
+    def load_image(self, image, filename):
+        self.exif_data = {ExifTags.TAGS[k]: v for k, v in image._getexif().items() if k in ExifTags.TAGS}
+        self.image = ImageQt.ImageQt(image)
+        self.filename = filename
 
-def buildLink(lat, latref, lon, lonref):
-    lat = tuple(lat)
-    lon = tuple(lon)
+        self.set_gps_data()
 
-    latitude = str(int(lat[0])) + '°' + str(int(lat[1])) + '\'' + str(lat[2]) + '\"' + latref
-    longitude = str(int(lon[0])) + '°' + str(int(lon[1])) + '\'' + str(lon[2]) + '\"' + lonref
+    def close_image(self):
+        self.image = None
+        self.exif_data = None
+        self.filename = None
 
-    link = 'https://www.google.com/maps/place/' + latitude + '+' + longitude
+    def set_gps_data(self):
+        exif_data_gps = self.process_gps_data()
 
-    return link
+        if exif_data_gps is not None:
+            self.exif_data = exif_data_gps
+        else:
+            return
 
+    def process_gps_data(self):
+        exif_data = self.exif_data
+        gps_data = self.exif_data.get('GPSInfo')
 
+        if gps_data is not None:
+            gps_data_dict = {}  # Contains all GPS EXIF tags with their proper names (and relative values)
 
+            # EXIF GPS tags' numbers taken from: https://exiftool.org/TagNames/GPS.html
+            if gps_data.get(0) is not None:
+                gps_data_dict['GPSVersionID'] = gps_data.get(0)
+            if gps_data.get(1) is not None:
+                gps_data_dict['GPSLatitudeRef'] = gps_data.get(1)
+            if gps_data.get(2) is not None:
+                gps_data_dict['GPSLatitude'] = gps_data.get(2)
+            if gps_data.get(3) is not None:
+                gps_data_dict['GPSLongitudeRef'] = gps_data.get(3)
+            if gps_data.get(4) is not None:
+                gps_data_dict['GPSLongitude'] = gps_data.get(4)
+            if gps_data.get(5) is not None:
+                gps_data_dict['GPSAltitudeRef'] = gps_data.get(5)
+            if gps_data.get(6) is not None:
+                gps_data_dict['GPSAltitude'] = gps_data.get(6)
+            if gps_data.get(7) is not None:
+                gps_data_dict['GPSTimeStamp'] = gps_data.get(7)
+            if gps_data.get(8) is not None:
+                gps_data_dict['GPSSatellites'] = gps_data.get(8)
+            if gps_data.get(9) is not None:
+                gps_data_dict['GPSStatus'] = gps_data.get(9)
+            if gps_data.get(10) is not None:
+                gps_data_dict['GPSMeasureMode'] = gps_data.get(10)
+            if gps_data.get(11) is not None:
+                gps_data_dict['GPSDOP'] = gps_data.get(11)
+            if gps_data.get(12) is not None:
+                gps_data_dict['GPSSpeedRef'] = gps_data.get(12)
+            if gps_data.get(13) is not None:
+                gps_data_dict['GPSSpeed'] = gps_data.get(13)
+            if gps_data.get(14) is not None:
+                gps_data_dict['GPSTrackRef'] = gps_data.get(14)
+            if gps_data.get(15) is not None:
+                gps_data_dict['GPSTrack'] = gps_data.get(15)
+            if gps_data.get(16) is not None:
+                gps_data_dict['GPSImgDirectionRef'] = gps_data.get(16)
+            if gps_data.get(17) is not None:
+                gps_data_dict['GPSImgDirection'] = gps_data.get(17)
+            if gps_data.get(18) is not None:
+                gps_data_dict['GPSMapDatum'] = gps_data.get(18)
+            if gps_data.get(19) is not None:
+                gps_data_dict['GPSDestLatitudeRef'] = gps_data.get(19)
+            if gps_data.get(20) is not None:
+                gps_data_dict['GPSDestLatitude'] = gps_data.get(20)
+            if gps_data.get(21) is not None:
+                gps_data_dict['GPSDestLongitudeRef'] = gps_data.get(21)
+            if gps_data.get(22) is not None:
+                gps_data_dict['GPSDestLongitude'] = gps_data.get(22)
+            if gps_data.get(23) is not None:
+                gps_data_dict['GPSDestBearingRef'] = gps_data.get(23)
+            if gps_data.get(24) is not None:
+                gps_data_dict['GPSDestBearing'] = gps_data.get(24)
+            if gps_data.get(25) is not None:
+                gps_data_dict['GPSDestDistanceRef'] = gps_data.get(25)
+            if gps_data.get(26) is not None:
+                gps_data_dict['GPSDestDistance'] = gps_data.get(26)
+            if gps_data.get(27) is not None:
+                gps_data_dict['GPSProcessingMethod'] = gps_data.get(27)
+            if gps_data.get(28) is not None:
+                gps_data_dict['GPSAreaInformation'] = gps_data.get(28)
+            if gps_data.get(29) is not None:
+                gps_data_dict['GPSDateStamp'] = gps_data.get(29)
+            if gps_data.get(30) is not None:
+                gps_data_dict['GPSDifferential'] = gps_data.get(30)
+            if gps_data.get(31) is not None:
+                gps_data_dict['GPSHPositioningError'] = gps_data.get(31)
 
-def processGPSData(exif):
-    gps_data = exif.get('GPSInfo')
+            exif_data.pop('GPSInfo')
 
-    if gps_data is not None:
-        gps = gps_data
-        new_gps = {}
+            exif_data_updated = {}  # Contains the original EXIF data + the new GPS EXIF data
 
-        # https://exiftool.org/TagNames/GPS.html
+            exif_data_updated.update({'GPSLocation': self.build_gmaps_link(gps_data_dict['GPSLatitude'], gps_data_dict['GPSLatitudeRef'], gps_data_dict['GPSLongitude'], gps_data_dict['GPSLongitudeRef'])})
+            exif_data_updated.update(gps_data_dict)
+            exif_data_updated.update(exif_data)
 
-        if gps.get(0) is not None:
-            new_gps['GPSVersionID'] = gps.get(0)
-        if gps.get(1) is not None:
-            new_gps['GPSLatitudeRef'] = gps.get(1)
-        if gps.get(2) is not None:
-            new_gps['GPSLatitude'] = gps.get(2)
-        if gps.get(3) is not None:
-            new_gps['GPSLongitudeRef'] = gps.get(3)
-        if gps.get(4) is not None:
-            new_gps['GPSLongitude'] = gps.get(4)
-        if gps.get(5) is not None:
-            new_gps['GPSAltitudeRef'] = gps.get(5)
-        if gps.get(6) is not None:
-            new_gps['GPSAltitude'] = gps.get(6)
-        if gps.get(7) is not None:
-            new_gps['GPSTimeStamp'] = gps.get(7)
-        if gps.get(8) is not None:
-            new_gps['GPSSatellites'] = gps.get(8)
-        if gps.get(9) is not None:
-            new_gps['GPSStatus'] = gps.get(9)
-        if gps.get(10) is not None:
-            new_gps['GPSMeasureMode'] = gps.get(10)
-        if gps.get(11) is not None:
-            new_gps['GPSDOP'] = gps.get(11)
-        if gps.get(12) is not None:
-            new_gps['GPSSpeedRef'] = gps.get(12)
-        if gps.get(13) is not None:
-            new_gps['GPSSpeed'] = gps.get(13)
-        if gps.get(14) is not None:
-            new_gps['GPSTrackRef'] = gps.get(14)
-        if gps.get(15) is not None:
-            new_gps['GPSTrack'] = gps.get(15)
-        if gps.get(16) is not None:
-            new_gps['GPSImgDirectionRef'] = gps.get(16)
-        if gps.get(17) is not None:
-            new_gps['GPSImgDirection'] = gps.get(17)
-        if gps.get(18) is not None:
-            new_gps['GPSMapDatum'] = gps.get(18)
-        if gps.get(19) is not None:
-            new_gps['GPSDestLatitudeRef'] = gps.get(19)
-        if gps.get(20) is not None:
-            new_gps['GPSDestLatitude'] = gps.get(20)
-        if gps.get(21) is not None:
-            new_gps['GPSDestLongitudeRef'] = gps.get(21)
-        if gps.get(22) is not None:
-            new_gps['GPSDestLongitude'] = gps.get(22)
-        if gps.get(23) is not None:
-            new_gps['GPSDestBearingRef'] = gps.get(23)
-        if gps.get(24) is not None:
-            new_gps['GPSDestBearing'] = gps.get(24)
-        if gps.get(25) is not None:
-            new_gps['GPSDestDistanceRef'] = gps.get(25)
-        if gps.get(26) is not None:
-            new_gps['GPSDestDistance'] = gps.get(26)
-        if gps.get(27) is not None:
-            new_gps['GPSProcessingMethod'] = gps.get(27)
-        if gps.get(28) is not None:
-            new_gps['GPSAreaInformation'] = gps.get(28)
-        if gps.get(29) is not None:
-            new_gps['GPSDateStamp'] = gps.get(29)
-        if gps.get(30) is not None:
-            new_gps['GPSDifferential'] = gps.get(30)
-        if gps.get(31) is not None:
-            new_gps['GPSHPositioningError'] = gps.get(31)
+            return exif_data_updated
+        else:
+            return None
 
-        exif.pop('GPSInfo')
-        new_exif = {}
+    def build_gmaps_link(self, lat, lat_ref, lon, lon_ref):
+        lat = tuple(lat)
+        lon = tuple(lon)
 
-        new_exif.update({'GPSLocation': buildLink(new_gps['GPSLatitude'], new_gps['GPSLatitudeRef'], new_gps['GPSLongitude'], new_gps['GPSLongitudeRef'])})
-        new_exif.update(new_gps)
-        new_exif.update(exif)
+        latitude = str(int(lat[0])) + '°' + str(int(lat[1])) + '\'' + str(lat[2]) + '\"' + lat_ref
+        longitude = str(int(lon[0])) + '°' + str(int(lon[1])) + '\'' + str(lon[2]) + '\"' + lon_ref
 
-        return new_exif
+        link = 'https://www.google.com/maps/place/' + latitude + '+' + longitude
 
-    return exif
+        return link

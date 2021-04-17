@@ -24,9 +24,9 @@ class ImageWidget(QLabel):
         self.image_area = QLabel()
 
         # Alignment and resizing
-        self.image_area.setAlignment(Qt.AlignCenter)
-        self.image_area.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
-        self.image_area.setScaledContents(False)
+        self.setAlignment(Qt.AlignCenter)
+        self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
+        self.setScaledContents(False)
 
         # Additional settings
         self.image_area.setMouseTracking(True)
@@ -52,7 +52,7 @@ class ExifWidget(QFrame):
         super().__init__()
 
         self.view = view
-        self.exif_data = view.model.get_exif_data()
+        self.exif_data = view.model.exif_data
 
         if self.exif_data is not None:  # TODO Test behavior on images without EXIF data.
             self.get_table()
@@ -101,6 +101,8 @@ class StatusBar(QStatusBar):
 
         self.setMinimumHeight(20)
         self.setMaximumHeight(20)
+
+        self.setSizeGripEnabled(False)
 
     def update(self, text):
         """Updates the displayed text."""
