@@ -50,6 +50,7 @@ class ImageWidget(QLabel):
         self.w = 0
         self.h = 0
 
+    '''
     def eventFilter(self, widget, event):
         if event.type() == QEvent.Resize and widget is self and self.pixmap is not None:  # The resizing filter is only applied to the image area label
             self.setPixmap(QPixmap.fromImage(self.view.model.modified_image).scaled(self.width(), self.height(), aspectRatioMode=Qt.KeepAspectRatio, transformMode=Qt.SmoothTransformation))
@@ -58,7 +59,7 @@ class ImageWidget(QLabel):
             self.h = self.height()
             return True
         return QMainWindow.eventFilter(self, widget, event)
-
+    '''
 
 class ExifWidget(QFrame):
     """QWidget for visualizing EXIF data.
@@ -288,6 +289,7 @@ class MenuBar(QMenuBar):
         self.menus['view']['showexif'].setShortcut('Ctrl+I')
         self.menus['view']['showexif'].setStatusTip('Show EXIF data for the current image.')
         self.menus['view']['showexif'].setIcon(QIcon('icons/showexif.png'))
+        self.menus['view']['showexif'].setCheckable(True)
         self.menus['view']['showexif'].triggered.connect(self.view.show_exif)
 
         # About

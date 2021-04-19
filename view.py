@@ -56,6 +56,7 @@ class View(Subject, QMainWindow):
 
         # Set window properties
         self.set_window_properties()
+        self.image_area.installEventFilter(self)
 
     def set_window_properties(self):
         """Sets some main window properties."""
@@ -113,10 +114,13 @@ class View(Subject, QMainWindow):
         self.image_area.set_image(self.model.image, w, h)
 
         #self.image_area.resize(self.image_area.w, self.menuBar().height() + self.statusBar().height() + self.image_area.h)  # TODO
+
         if w < 280:  # Set a minimum window width so as to correctly display the window title and menu bar; 280px should be good
-            self.resize(280, h + 180)
+            self.resize(280, h + 112)
         else:
-            self.resize(w, h + 180)
+            self.resize(w, h + 112)
+
+        self.image_area.pixmap.scaled(w, h)
 
         # EXIF data
         self.exif_area.load_exif()
@@ -131,6 +135,15 @@ class View(Subject, QMainWindow):
     def saveas(self):
         self.model.set_image(self.model.image.transformed(QTransform().rotate(self.image_area.rot), Qt.SmoothTransformation))
         self.set_state('saveas')
+
+    def eventFilter(self, widget, event):
+        if event.type() == QEvent.Resize and widget is self.image_area and self.image_area.pixmap is not None:  # The resizing filter is only applied to the image area label
+            self.image_area.setPixmap(QPixmap.fromImage(self.model.modified_image).scaled(self.image_area.width(), self.image_area.height(), aspectRatioMode=Qt.KeepAspectRatio, transformMode=Qt.SmoothTransformation))
+            # Update new dimensions for later use
+            self.image_area.w = self.image_area.width()
+            self.image_area.h = self.image_area.height()
+            return True
+        return QMainWindow.eventFilter(self, widget, event)
 
     def close(self):
         self.set_state('close')
