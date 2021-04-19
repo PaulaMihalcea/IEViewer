@@ -353,6 +353,8 @@ class MenuBar(QMenuBar):
             self.disable(m)
         for a in self.disabled_actions:
             self.disable(a[0], a[1])
+            if isinstance(self.menus[a[0]][a[1]], QAction) and self.menus[a[0]][a[1]].isChecked():
+                self.menus[a[0]][a[1]].setChecked(False)
 
 
 

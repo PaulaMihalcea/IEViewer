@@ -1,3 +1,4 @@
+import platform
 from PIL import ImageQt, ExifTags
 # TODO documentazione
 
@@ -131,18 +132,25 @@ class ImageModel():
             return None
 
     def build_gmaps_link(self, lat, lat_ref, lon, lon_ref):
-        #lat = tuple(lat)  # TODO
-        #lon = tuple(lon)  # TODO
+        os = platform.system()
+        print(os, type(os))
+        print(lat, lon)
+        if 'Windows' in os:
+            lat = tuple(lat)  # TODO
+            lon = tuple(lon)  # TODO
+            latitude = str(int(lat[0])) + '°' + str(int(lat[1])) + '\'' + str(lat[2]) + '\"' + lat_ref
+            longitude = str(int(lon[0])) + '°' + str(int(lon[1])) + '\'' + str(lon[2]) + '\"' + lon_ref
+        else:
+            # For some reason the EXIF data extracted on Linux is in a different format, which needs to be adjusted
+            lat_s = lat[2][0]/10 ** (len(str(lat[2][0]))-1)
+            lon_s = lon[2][0] / 10 ** (len(str(lon[2][0])) - 1)
+            latitude = str(int(lat[0][0])) + '°' + str(int(lat[1][0])) + '\'' + str(lat_s) + '\"' + lat_ref
+            longitude = str(int(lon[0][0])) + '°' + str(int(lon[1][0])) + '\'' + str(lon_s) + '\"' + lon_ref
 
-        print('DIS LAT',lat)
-        print('DIS LON', lon)
+        #print('DIS LAT',lat)
+        #print('DIS LON', lon)
 
-        print(lat[2][0]/10 ** (len(str(lat[2][0]))-1))
-        lat_s = lat[2][0]/10 ** (len(str(lat[2][0]))-1)
-        lon_s = lon[2][0] / 10 ** (len(str(lon[2][0])) - 1)
-
-        latitude = str(int(lat[0][0])) + '°' + str(int(lat[1][0])) + '\'' + str(lat_s) + '\"' + lat_ref
-        longitude = str(int(lon[0][0])) + '°' + str(int(lon[1][0])) + '\'' + str(lon_s) + '\"' + lon_ref
+        #print(lat[2][0]/10 ** (len(str(lat[2][0]))-1))
 
         link = 'https://www.google.com/maps/place/' + latitude + '+' + longitude
 
