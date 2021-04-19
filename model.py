@@ -3,12 +3,13 @@ from PIL import ImageQt, ExifTags
 # TODO documentazione
 
 class ImageModel():
-    def __init__(self):
+    def __init__(self, terminal_flag):
         """Inits the class."""
         self.image = None
         self.exif_data = None
         self.filename = None
         self.modified_image = None
+        self.terminal_flag = terminal_flag
 
     def set_image(self, image):
         self.image = image
@@ -137,19 +138,25 @@ class ImageModel():
             return None
 
     def build_gmaps_link(self, lat, lat_ref, lon, lon_ref):
+        '''
         os = platform.system()
         print(os, type(os))
 
         print()
         print('LAT, LON:',lat, lon)
         print()
+        '''
 
-        if 'Windows' in os:
+        #if 'Windows' in os:
+        print('flag:', self.terminal_flag)
+        if not self.terminal_flag:
+            print('script')
             lat = tuple(lat)  # TODO
             lon = tuple(lon)  # TODO
             latitude = str(int(lat[0])) + '°' + str(int(lat[1])) + '\'' + str(lat[2]) + '\"' + lat_ref
             longitude = str(int(lon[0])) + '°' + str(int(lon[1])) + '\'' + str(lon[2]) + '\"' + lon_ref
         else:
+            print('terminal')
             # For some reason the EXIF data extracted on Linux is in a different format, which needs to be adjusted
             lat_s = float(lat[2][0]/10 ** (len(str(lat[2][1]))-1))
             lon_s = float(lon[2][0] / 10 ** (len(str(lon[2][1])) - 1))

@@ -86,12 +86,13 @@ class ExifWidget(QFrame):
             self.get_table()
             #self.exif_table.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContents)  # TODO
             self.exif_table.resizeColumnsToContents()
+            self.exif_table.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
+            self.exif_table.setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
         else:
             self.exif_table = QLabel()
             self.exif_table.setText('No EXIF data available for this image.')
             self.exif_table.setAlignment(Qt.AlignCenter)
-        self.exif_table.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
-        self.exif_table.setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
+
         self.set_layout()
 
     def get_table(self):
@@ -209,87 +210,87 @@ class MenuBar(QMenuBar):
     def get_actions(self):
         """Creates all available actions and submenus."""
         # Open
-        self.menus['file']['open'] = QAction('&Open')
+        self.menus['file']['open'] = QAction('&Open', self.view)
         self.menus['file']['open'].setShortcut('Ctrl+O')
         self.menus['file']['open'].setStatusTip('Open file.')
         self.menus['file']['open'].setIcon(QIcon('icons/open.png'))
         self.menus['file']['open'].triggered.connect(self.view.open)
 
         # Separator
-        self.menus['file']['sep_1'] = QAction()
+        self.menus['file']['sep_1'] = QAction(self.view)
         self.menus['file']['sep_1'].setSeparator(True)
 
         # Save
-        self.menus['file']['save'] = QAction('&Save')
+        self.menus['file']['save'] = QAction('&Save', self.view)
         self.menus['file']['save'].setShortcut('Ctrl+S')
         self.menus['file']['save'].setStatusTip('Save file.')
         self.menus['file']['save'].setIcon(QIcon('icons/save.png'))
         self.menus['file']['save'].triggered.connect(self.view.save)
 
         # Save As
-        self.menus['file']['saveas'] = QAction('Save &As...')
+        self.menus['file']['saveas'] = QAction('Save &As...', self.view)
         self.menus['file']['saveas'].setShortcut('Ctrl+Shift+S')
         self.menus['file']['saveas'].setStatusTip('Save file with another name.')
         self.menus['file']['saveas'].setIcon(QIcon('icons/saveas.png'))
         self.menus['file']['saveas'].triggered.connect(self.view.saveas)
 
         # Close
-        self.menus['file']['close'] = QAction('&Close')
+        self.menus['file']['close'] = QAction('&Close', self.view)
         self.menus['file']['close'].setShortcut('Ctrl+W')
         self.menus['file']['close'].setStatusTip('Close current file.')
         self.menus['file']['close'].setIcon(QIcon('icons/close.png'))
         self.menus['file']['close'].triggered.connect(self.view.close)
 
         # Separator
-        self.menus['file']['sep_2'] = QAction()
+        self.menus['file']['sep_2'] = QAction(self.view)
         self.menus['file']['sep_2'].setSeparator(True)
 
         # Exit
-        self.menus['file']['exit'] = QAction('E&xit')
+        self.menus['file']['exit'] = QAction('E&xit', self.view)
         self.menus['file']['exit'].setShortcut('Ctrl+Q')
         self.menus['file']['exit'].setStatusTip('Exit IEViewer.')
         self.menus['file']['exit'].setIcon(QIcon('icons/exit.png'))
         self.menus['file']['exit'].triggered.connect(self.view.exit)
 
         # Image Rotation
-        self.menus['edit']['ir_submenu_'] = QMenu('Ima&ge Rotation')
+        self.menus['edit']['ir_submenu_'] = QMenu('Ima&ge Rotation', self.view)
         self.menus['edit']['ir_submenu_'].menuAction().setStatusTip('Rotate image.')
         self.menus['edit']['ir_submenu_'].setIcon(QIcon('icons/rotate90c.png'))
 
         # Rotate 90° Clockwise
-        self.menus['edit']['ir_sub_rotate90c'] = QAction('Rotate &right &90°')
+        self.menus['edit']['ir_sub_rotate90c'] = QAction('Rotate &right &90°', self.view)
         self.menus['edit']['ir_sub_rotate90c'].setShortcut('Ctrl+Right')
         self.menus['edit']['ir_sub_rotate90c'].setStatusTip('Rotate the image by 90 degrees right.')
         self.menus['edit']['ir_sub_rotate90c'].setIcon(QIcon('icons/rotate90c.png'))
         self.menus['edit']['ir_sub_rotate90c'].triggered.connect(self.view.rotate90c)
 
         # Rotate 90° Counter Clockwise
-        self.menus['edit']['ir_sub_rotate90cc'] = QAction('Rotate &left 90°')
+        self.menus['edit']['ir_sub_rotate90cc'] = QAction('Rotate &left 90°', self.view)
         self.menus['edit']['ir_sub_rotate90cc'].setShortcut('Ctrl+Left')
         self.menus['edit']['ir_sub_rotate90cc'].setStatusTip('Rotate the image by 90 degrees left.')
         self.menus['edit']['ir_sub_rotate90cc'].setIcon(QIcon('icons/rotate90cc.png'))
         self.menus['edit']['ir_sub_rotate90cc'].triggered.connect(self.view.rotate90cc)
 
         # Rotate 180°
-        self.menus['edit']['ir_sub_rotate180'] = QAction('Rotate &180°')
+        self.menus['edit']['ir_sub_rotate180'] = QAction('Rotate &180°', self.view)
         self.menus['edit']['ir_sub_rotate180'].setShortcut('Ctrl+Up')
         self.menus['edit']['ir_sub_rotate180'].setStatusTip('Rotate the image by 180 degrees.')
         self.menus['edit']['ir_sub_rotate180'].setIcon(QIcon('icons/rotate180.png'))
         self.menus['edit']['ir_sub_rotate180'].triggered.connect(self.view.rotate180)
 
         # Separator
-        self.menus['edit']['sep_3'] = QAction()
+        self.menus['edit']['sep_3'] = QAction(self.view)
         self.menus['edit']['sep_3'].setSeparator(True)
 
         # Reset Image
-        self.menus['edit']['resetimage'] = QAction('&Reset Image')
+        self.menus['edit']['resetimage'] = QAction('&Reset Image', self.view)
         self.menus['edit']['resetimage'].setShortcut('Ctrl+0')
         self.menus['edit']['resetimage'].setStatusTip('Reset image to default size and rotation.')
         self.menus['edit']['resetimage'].setIcon(QIcon('icons/reset.png'))
         self.menus['edit']['resetimage'].triggered.connect(self.view.reset_image)
 
         # Show EXIF
-        self.menus['view']['showexif'] = QAction('Show &EXIF')
+        self.menus['view']['showexif'] = QAction('Show &EXIF', self.view)
         self.menus['view']['showexif'].setShortcut('Ctrl+I')
         self.menus['view']['showexif'].setStatusTip('Show EXIF data for the current image.')
         self.menus['view']['showexif'].setIcon(QIcon('icons/showexif.png'))
@@ -297,7 +298,7 @@ class MenuBar(QMenuBar):
         self.menus['view']['showexif'].triggered.connect(self.view.show_exif)
 
         # About
-        self.menus['help']['about'] = QAction('&About')
+        self.menus['help']['about'] = QAction('&About', self.view)
         self.menus['help']['about'].setShortcut('F1')
         self.menus['help']['about'].setStatusTip('About IEViewer.')
         self.menus['help']['about'].setIcon(QIcon('icons/about.png'))
@@ -394,7 +395,7 @@ class ToolBar(QToolBar):
         for m in menus:
             if m != current_menu:  # Add separators between different menu bar categories
                 if current_menu is not None:
-                    self.actions['sep_toolbar_' + str(sep_number)] = QAction()
+                    self.actions['sep_toolbar_' + str(sep_number)] = QAction(self.view)
                     self.actions['sep_toolbar_' + str(sep_number)].setSeparator(True)
                     sep_number += 1
                 current_menu = m

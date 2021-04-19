@@ -44,7 +44,7 @@ class View(Subject, QMainWindow):
                      '<br><br>' \
                      'PyQt5 is copyright © Riverbank Computing Limited. Its homepage is <a href="https://www.riverbankcomputing.com/software/pyqt/">https://www.riverbankcomputing.com/software/pyqt/</a>.' \
                      '<br><br>' \
-                     'No genasi were harmed in the making of this application. <a href="https://www.dndbeyond.com/races/genasi#WaterGenasi">#GenasiLivesMatter#NereisThalian</a>'
+                     'No genasi were harmed in the making of this application. <a href="https://www.dndbeyond.com/races/genasi#WaterGenasi">#GenasiLivesMatter#NereisThalian#WaterGenasi</a>'
         self.about = AboutWidget('About IEViewer', about_text, image_path='icons/about_img.png')
 
         # Disable GUI elements that are unavailable when no image is opened
