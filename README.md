@@ -42,6 +42,31 @@ The program features the following operations:
 
 ---
 
+## Installation
+Being a Python application, IEViewer has a few basic requirements in order to be up and running. In order to install them, the [pip](https://packaging.python.org/key_projects/#pip "pip") package installer is recommended, as it allows for the automatic installation of all requirements through the following command:
+
+1. Download this repository and navigate to its folder
+
+2. Install the requirements:
+
+    ```
+    pip install --upgrade -r requirements.txt
+    ```
+   
+3. On Linux, run IEViewer from the terminal:
+
+    ```
+    python3 main.py
+    ```
+   
+4. On Windows, you can either run IEViewer from the terminal like on Linux, or you can modify the IEViewer.bat file with the full path to your Python 3 executable
+
+For example,
+"C:\ProgramData\Anaconda3\python.exe" "Z:\Zelethil\Documents\Scuola\UniFi - Ingegneria Informatica\Anno V\Human computer interaction\Assignment\ImageEXIFViewer\main.py"
+pause
+
+    
+
 ## Technical details
 **IEViewer** has been programmed in the **[Python](https://www.python.org/ "Python")** language, and uses the **[PyQt5](https://riverbankcomputing.com/software/pyqt "PyQt5")** library for its graphical user interface.
 
