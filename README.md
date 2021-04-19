@@ -43,28 +43,42 @@ The program features the following operations:
 ---
 
 ## Installation
-Being a Python application, IEViewer has a few basic requirements in order to be up and running. In order to install them, the [pip](https://packaging.python.org/key_projects/#pip "pip") package installer is recommended, as it allows for the automatic installation of all requirements through the following command:
+Being a Python application, IEViewer has a few basic requirements in order to be up and running. In order to install them, the [pip](https://packaging.python.org/key_projects/#pip "pip") package installer is recommended, as it allows for the automatic installation of all requirements. Nonetheless, the latter have been listed in order to simplify an eventual manual installation.
 
-1. Download this repository and navigate to its folder
+1. Download the repository and navigate to its folder.
 
-2. Install the requirements:
+2. Install the requirements using `pip`:
 
     ```
     pip install --upgrade -r requirements.txt
     ```
-   
-3. On Linux, run IEViewer from the terminal:
+
+#### Requirements
+| Package | Version |
+| :------------ | :------------ |
+| Python | 3.8 |
+| Pillow | 8.2.0 |
+| PyQt | 5.9.2 |
+Please note that the above versions are to be intended as minimum.
+
+---
+
+## Usage
+- **Linux:** Run IEViewer from the terminal:
 
     ```
     python3 main.py
     ```
    
-4. On Windows, you can either run IEViewer from the terminal like on Linux, or you can modify the IEViewer.bat file with the full path to your Python 3 executable
+- **Windows:** You can either run IEViewer from the terminal just like on Linux, or you can modify the given `IEViewer.bat` file with the full path to your Python 3 executable and the full path to the IEViewer `main.py` script.
 
-For example,
-"C:\ProgramData\Anaconda3\python.exe" "Z:\Zelethil\Documents\Scuola\UniFi - Ingegneria Informatica\Anno V\Human computer interaction\Assignment\ImageEXIFViewer\main.py"
-pause
+    *For example, if Python 3 has been installed to `C:\ProgramData\Anaconda3\python.exe` and `main.py` can be found in `C:\Users\Paula\IEViewer\`, then the `IEViewer.bat` file will be:*
 
+    ```
+    "C:\ProgramData\Anaconda3\python.exe" "C:\Users\Paula\IEViewer\main.py"
+    pause
+    ```
+   
     
 
 ## Technical details
@@ -78,73 +92,3 @@ It features a complete [Model View Controller](https://martinfowler.com/eaaDev/u
 Additional script files include:
 - `observer.py`: a basic, manual implementation of the Observer design pattern;
 - `widgets.py`: an overhaul of all the PyQt5 widgets used by the view, appropriately customized for this application.
-
-
-
-
----
-
-## Installation
-
-Although the original project came with a `requirements.txt` file and some instructions for installation, they were insufficient for creating a working environment for Python 3 with Conda, especially if the desired package was the `mpi-mesh` package.
-
-For this reason, we have written the following guide for creating a **Conda virtual environment** with **Python 3** called `Neural3DMM_BU3DFE` which can be safely used to execute this repository's code:
-
-1. Create Conda virtual environment:
-
-    ```
-    conda create --name Neural3DMM_BU3DFE python=3.6
-    conda activate Neural3DMM_BU3DFE
-    ```
-   
-2. Install OpenDR for Python 3:
-    ```
-    conda install -c anaconda numpy
-    git clone https://github.com/apoorvjain25/opendr-1
-    pip install opendr-1/.
-    rm -r opendr-1 # Or simply manually delete the cloned repo of OpenDR, as it is not needed anymore
-    ```
-
-3. Install the [MPI-IS/mesh](https://github.com/MPI-IS/mesh) library:
-    ```
-    conda install -c anaconda boost
-    git clone https://github.com/MPI-IS/mesh
-    pip install --upgrade -r mesh/requirements.txt
-    pip install --no-deps --install-option="--boost-location=$$BOOST_INCLUDE_DIRS" --verbose --no-cache-dir mesh/.
-    rm -r mesh # Or simply manually delete the cloned repo of MPI-IS/mesh, as it is not needed anymore
-    ```
-    Note: if the second `pip` command should fail, please refer to [this issue](https://github.com/MPI-IS/mesh/pull/58#issuecomment-809244983) (make sure to replace `~/anaconda3/` in the suggested solution with the path to your Anaconda 3 installation, if different).
-
-4. Clone this repository and install its requirements:
-    ```
-    git clone https://github.com/PaulaMihalcea/Neural3DMM_BU3DFE
-    pip install --upgrade -r Neural3DMM_BU3DFE/requirements.txt
-    conda install -c pytorch pytorch
-    conda install -c conda-forge trimesh
-    conda install -c conda-forge tensorboardx
-    pip install pyrender
-    ```
-   
-    Note: If during execution TensorboardX should output a serialization error (`__new__() got an unexpected keyword argument 'serialized_options'`), uninstall and then reinstall Protobuf using `pip`:
-    ```
-    pip uninstall protobuf
-    pip install -U protobuf
-    ```
-   If the program still does not work, or gives out a `RuntimeError: CUDA out of memory. Tried to allocate...` error, try installing version 3.6.0 of Protobuf (ignore `pip`'s warnings about package incompatibility):
-    ```
-    pip uninstall protobuf
-    pip install -U protobuf==3.6.0
-    ```
-
-5. Finally, make sure to obtain the [BU3DFE dataset](http://www.cs.binghamton.edu/~lijun/Research/3DFE/3DFE_Analysis.html) from its authors and reorder its models according to the order specified in `data/BU3DFE/identities.txt`, then save it as `dataset.npy` in `data/BU3DFE/`. `dataset.npy` needs to contain only the models' vertices, as their triangulation (which is the same for all models) can be found in `data/BU3DFE/template/template.obj`.
-
-## Usage
-
-In order to run the program for the first time using the default settings (those that yield the best results), simply run `python3 main.py`.
- 
-Two optional arguments, `--settings` and `--mode`, allow to choose the settings file to be used and the mode (`train` or `test`), e.g.: `python3 main.py --settings my_fav_settings_file --mode train`.
-
-Please note that, unlike the original project, `data_generation.py` does not need to be run anymore if `split_dataset = True` in the chosen settings file. The `settings` folder has been specially created in order to contain any number of settings files, thus allowing for an easier setup of the model.
-
-
-The following is the original abstract of the project.
