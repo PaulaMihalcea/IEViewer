@@ -1,6 +1,5 @@
-import platform
 from PIL import ImageQt, ExifTags
-# TODO documentazione
+
 
 class ImageModel():
     def __init__(self, terminal_flag):

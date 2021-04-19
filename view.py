@@ -1,11 +1,8 @@
-import sys, errno
-import webbrowser
-from PIL import Image, ImageQt, ExifTags
-from PyQt5.QtCore import Qt, QEvent, QRect, QAbstractTableModel, QAbstractItemModel
-from PyQt5.QtGui import QPixmap, QImage, QTransform, QMouseEvent, QStatusTipEvent, QColor, QPalette, QIcon
-from PyQt5.QtWidgets import QMainWindow, QLabel, QMenu, QMenuBar, QAction, QFileDialog, QMessageBox, QSizePolicy, QWidget, QTabWidget, QHBoxLayout, QVBoxLayout, QPushButton, QGridLayout, QScrollArea, QTableView, QTableWidget, QFrame, QTableWidgetItem, QHeaderView, QToolBar, QLayout
-from widgets import ExifWidget, ImageWidget, StatusBar, MenuBar, ToolBar, Layout, AboutWidget
+from PyQt5.QtCore import Qt, QEvent
+from PyQt5.QtGui import QPixmap, QTransform, QStatusTipEvent
+from PyQt5.QtWidgets import QMainWindow, QFileDialog, QMessageBox
 from observer import Subject
+from widgets import ExifWidget, ImageWidget, StatusBar, MenuBar, ToolBar, Layout, AboutWidget
 
 
 class View(Subject, QMainWindow):
@@ -77,11 +74,14 @@ class View(Subject, QMainWindow):
             return file_path
 
     def get_save_file_dialog(self, caption, filter):
-        file_path, _ = QFileDialog.getSaveFileName(caption=caption, directory='', filter=filter)  # By omitting the directory argument (empty string, ''), the dialog should remember the last directory (depends on operating system)
+        file_path, format = QFileDialog.getSaveFileName(caption=caption, directory='', filter=filter)  # By omitting the directory argument (empty string, ''), the dialog should remember the last directory (depends on operating system)
         if file_path == '':
-            return None
+            return None, None
         else:
-            return file_path
+            print('FORMAT:', format)
+            format = format.split(' ')
+            format = format[0]
+            return file_path, format
 
     def show_message_box(self, title, text, icon=QMessageBox.Information):
         info_box = QMessageBox(self)

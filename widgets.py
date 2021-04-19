@@ -1,10 +1,8 @@
-import sys, errno  # TODO Delete unnecessary imports
 import webbrowser
 from collections import OrderedDict
-from PIL import Image, ImageQt, ExifTags
-from PyQt5.QtCore import Qt, QEvent, QRect, QAbstractTableModel, QAbstractItemModel,QSize, QFileInfo
-from PyQt5.QtGui import QPixmap, QImage, QTransform, QMouseEvent, QStatusTipEvent, QColor, QPalette, QIcon
-from PyQt5.QtWidgets import QMainWindow, QLabel, QMenu, QMenuBar, QAction, QFileDialog, QMessageBox, QSizePolicy, QWidget, QTabWidget, QHBoxLayout, QVBoxLayout, QPushButton, QGridLayout, QScrollArea, QTableView, QTableWidget, QFrame, QTableWidgetItem, QHeaderView, QToolBar, QAbstractItemView, QStatusBar, QLayout, QListWidget, QListWidgetItem, QListView, QAbstractScrollArea
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QPixmap, QIcon
+from PyQt5.QtWidgets import QLabel, QMenu, QMenuBar, QAction, QMessageBox, QSizePolicy, QWidget, QHBoxLayout, QVBoxLayout, QTableWidget, QFrame, QTableWidgetItem, QToolBar, QAbstractItemView, QStatusBar
 
 
 class ImageWidget(QLabel):

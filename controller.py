@@ -60,8 +60,10 @@ class Controller(Observer):
         self.model.image.save(self.model.filename)
 
     def saveas(self):
-        image_path = self.view.get_save_file_dialog(caption='Save As', filter='JPEG (*.jpg; *.jpeg);; PNG (*.png);; BMP (*.bmp);; GIF (*.gif);; Portable Bit Map (*.pbm; *.pgm; *.ppm);; X Bit Map (*.xbm; *.xpm)')
-        self.model.modified_image.save(image_path)
+        image_path, format = self.view.get_save_file_dialog(caption='Save As', filter='JPEG (*.jpg; *.jpeg);; PNG (*.png);; BMP (*.bmp);; PPM (*.ppm);; XBM (*.xbm);; XPM (*.xpm)')
+        print(image_path + '.' + format)
+
+        self.model.modified_image.save(image_path + '.' + format)
 
     def about(self):
         text = 'IEViewer 1.0'
