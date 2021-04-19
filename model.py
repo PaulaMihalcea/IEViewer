@@ -2,6 +2,18 @@ from PIL import ImageQt, ExifTags
 
 
 class ImageModel():
+    """Model class for the image.
+
+    Basically, this is the class which holds the loaded image, its EXIF data and the modified image which might be eventually saved by the user.
+    It also processes said EXIF data, including GPS data (with the relative Google Maps link).
+
+    Attributes:
+        image: A PIL loaded image.
+        exif_data: A dictionary containing all EXIF data available for the image (None if there is none).
+        filename: The original image's file name (needed for saving).
+        modified_image: A PyQt image (QImage) modified by the user (i.e. a rotated version of the original image). Also needed for saving.
+        terminal_flag: Boolean flag needed to determine if the main program has been started from the terminal or an IDE (see main.py).
+    """
     def __init__(self, terminal_flag):
         """Inits the class."""
         self.image = None
@@ -11,37 +23,42 @@ class ImageModel():
         self.terminal_flag = terminal_flag
 
     def set_image(self, image):
+        """Image setter."""
         self.image = image
 
     def set_modified_image(self, modified_image):
+        """Modified image setter.."""
         self.modified_image = modified_image
 
     def load_image(self, image, filename):
+        """Processes an image loaded by and received from the Controller."""
+        # Store needed data in model
         self.filename = filename
         self.image = ImageQt.ImageQt(image)
         self.modified_image = self.image
 
+        # Get file format (needed for the check below)
         format = self.filename.split('.')
         format = format[len(format)-1]
 
-        if '_getexif' in dir(image) and image._getexif() is not None:
-            #print('ORIGINAL:',image._getexif())
-            p = image._getexif().items()
-            print('DIS:', type(p), p)
+        # PIL only gets EXIF data from JPEG images.
+        # To an extent, it also supports PNG EXIF data; however,
+        # the image must be loaded before trying to extract these attributes.
+        if '_getexif' in dir(image) and image._getexif() is not None:  # JPEG with EXIF data
             self.exif_data = {ExifTags.TAGS[k]: v for k, v in image._getexif().items() if k in ExifTags.TAGS}
             self.set_gps_data()
-        elif format == 'png':
+        elif format == 'png':  # PNG
             image.load()
-            #print('DISAHER', image.info)
             self.exif_data = image.info
 
-
     def close_image(self):
+        """Reset all the attributes to their original state. Intended to be used for properly closing an image."""
         self.image = None
         self.exif_data = None
         self.filename = None
 
     def set_gps_data(self):
+        """EXIF data setter."""
         exif_data_gps = self.process_gps_data()
 
         if exif_data_gps is not None:
@@ -50,12 +67,16 @@ class ImageModel():
             return
 
     def process_gps_data(self):
-        exif_data = self.exif_data
-        gps_data = self.exif_data.get('GPSInfo')
-        #print('EXIF DATA:', exif_data)   # TODO
-        #print('GPS DATA:', gps_data)
+        """Process GPS EXIF data, if available.
 
-        if gps_data is not None:
+        PIL's _getexif() function behaves differently according to where the main program has been run from.
+        In particular, it returns data in a different format if it has been started from the terminal, or an IDE.
+        Failing to acknowledge this fact will result in a crash.
+        """
+        exif_data = self.exif_data  # EXIF data
+        gps_data = self.exif_data.get('GPSInfo')  # Dictionary for storing the GPS EXIF data
+
+        if gps_data is not None:  # GPS EXIF data available
             gps_data_dict = {}  # Contains all GPS EXIF tags with their proper names (and relative values)
 
             # EXIF GPS tags' numbers taken from: https://exiftool.org/TagNames/GPS.html
@@ -124,6 +145,8 @@ class ImageModel():
             if gps_data.get(31) is not None:
                 gps_data_dict['GPSHPositioningError'] = gps_data.get(31)
 
+            # Remove original GPS EXIF data (which is too short and non-descriptive)
+            # and replace it with the new, processed dictionary
             exif_data.pop('GPSInfo')
 
             exif_data_updated = {}  # Contains the original EXIF data + the new GPS EXIF data
@@ -133,39 +156,24 @@ class ImageModel():
             exif_data_updated.update(exif_data)
 
             return exif_data_updated
-        else:
+        else:  # No GPS EXIF data available
             return None
 
     def build_gmaps_link(self, lat, lat_ref, lon, lon_ref):
-        '''
-        os = platform.system()
-        print(os, type(os))
+        """Builds a Google Maps link for the specified GPS location.
 
-        print()
-        print('LAT, LON:',lat, lon)
-        print()
-        '''
-
-        #if 'Windows' in os:
-        print('flag:', self.terminal_flag)
-        if not self.terminal_flag:
-            print('script')
-            lat = tuple(lat)  # TODO
-            lon = tuple(lon)  # TODO
+        Here is where the distinction between terminal and IDE script actually comes in play (see main.py and above)."""
+        if not self.terminal_flag:  # IDE
+            lat = tuple(lat)
+            lon = tuple(lon)
             latitude = str(int(lat[0])) + '°' + str(int(lat[1])) + '\'' + str(lat[2]) + '\"' + lat_ref
             longitude = str(int(lon[0])) + '°' + str(int(lon[1])) + '\'' + str(lon[2]) + '\"' + lon_ref
-        else:
-            print('terminal')
-            # For some reason the EXIF data extracted on Linux is in a different format, which needs to be adjusted
+        else:  # Terminal
+            # Latitude and longitude result as integer tuples from the terminal, and need to be divided in order to get the correct float number
             lat_s = float(lat[2][0]/10 ** (len(str(lat[2][1]))-1))
             lon_s = float(lon[2][0] / 10 ** (len(str(lon[2][1])) - 1))
             latitude = str(int(lat[0][0])) + '°' + str(int(lat[1][0])) + '\'' + str(lat_s) + '\"' + lat_ref
             longitude = str(int(lon[0][0])) + '°' + str(int(lon[1][0])) + '\'' + str(lon_s) + '\"' + lon_ref
-
-        #print('DIS LAT',lat)
-        #print('DIS LON', lon)
-
-        #print(lat[2][0]/10 ** (len(str(lat[2][0]))-1))
 
         link = 'https://www.google.com/maps/place/' + latitude + '+' + longitude
 
