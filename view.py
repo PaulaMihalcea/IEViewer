@@ -28,7 +28,7 @@ class View(Subject, QMainWindow):
         self.tool_bar = ToolBar(self)
         self.exif_area = ExifWidget(self)
         self.image_area = ImageWidget(self)
-        self.status_bar = StatusBar(self)
+        self.status_bar = StatusBar()
         about_text = 'IEViewer 1.0' \
                      '<br><br>' \
                      'Copyright © 2021 by' \
@@ -134,6 +134,7 @@ class View(Subject, QMainWindow):
 
         # Update window title (the one in the title bar)
         self.setWindowTitle('IEViewer - ' + self.model.filename)
+        self.menu_bar.enable_widgets()
 
     def save(self):
         self.model.set_image(self.model.image.transformed(QTransform().rotate(self.image_area.rot), Qt.SmoothTransformation))
