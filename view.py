@@ -4,7 +4,7 @@ from PIL import Image, ImageQt, ExifTags
 from PyQt5.QtCore import Qt, QEvent, QRect, QAbstractTableModel, QAbstractItemModel
 from PyQt5.QtGui import QPixmap, QImage, QTransform, QMouseEvent, QStatusTipEvent, QColor, QPalette, QIcon
 from PyQt5.QtWidgets import QMainWindow, QLabel, QMenu, QMenuBar, QAction, QFileDialog, QMessageBox, QSizePolicy, QWidget, QTabWidget, QHBoxLayout, QVBoxLayout, QPushButton, QGridLayout, QScrollArea, QTableView, QTableWidget, QFrame, QTableWidgetItem, QHeaderView, QToolBar, QLayout
-from widgets import ExifWidget, ImageWidget, StatusBar, MenuBar, ToolBar, Layout
+from widgets import ExifWidget, ImageWidget, StatusBar, MenuBar, ToolBar, Layout, AboutWidget
 from observer import Subject
 
 
@@ -21,7 +21,6 @@ class View(Subject, QMainWindow):
         Subject.__init__(self)
         QMainWindow.__init__(self)
 
-        # TODO
         self.set_state('no_image')
 
         # Set model
@@ -33,6 +32,20 @@ class View(Subject, QMainWindow):
         self.exif_area = ExifWidget(self)
         self.image_area = ImageWidget(self)
         self.status_bar = StatusBar(self)
+        about_text = 'IEViewer 1.0' \
+                     '<br><br>' \
+                     'Copyright © 2021 by' \
+                     '<br>' \
+                     'Paula Mihalcea' \
+                     '<br>' \
+                     '<a href="mailto:paula.mihalcea@live.com">paula.mihalcea@live.com</a>' \
+                     '<br><br>' \
+                     'This program uses PyQt5, a comprehensive set of Python bindings for Qt v5. Qt is a set of cross-platform C++ libraries that implement high-level APIs for accessing many aspects of modern desktop and mobile systems.\n' \
+                     '<br><br>' \
+                     'PyQt5 is copyright © Riverbank Computing Limited. Its homepage is <a href="https://www.riverbankcomputing.com/software/pyqt/">https://www.riverbankcomputing.com/software/pyqt/</a>.' \
+                     '<br><br>' \
+                     'No genasi were harmed in the making of this application. <a href="https://www.dndbeyond.com/races/genasi#WaterGenasi">#GenasiLivesMatter#NereisThalian</a>'
+        self.about = AboutWidget('About IEViewer', about_text, image_path='icons/about_img.png')
 
         # Disable GUI elements that are unavailable when no image is opened
         self.menu_bar.disable_widgets()
@@ -46,25 +59,41 @@ class View(Subject, QMainWindow):
 
     def set_window_properties(self):
         """Sets some main window properties."""
+        self.statusBar()
+        self.setStatusTip('Ready.')
         self.setWindowTitle('IEViewer')  # Window title (the one in the title bar)
         self.resize(512, 256)  # These default dimensions should be fine for most displays
 
-    def get_file_dialog(self, caption, filter):
+    def get_open_file_dialog(self, caption, filter):
         file_path, _ = QFileDialog.getOpenFileName(caption=caption, directory='', filter=filter)  # By omitting the directory argument (empty string, ''), the dialog should remember the last directory (depends on operating system)
         if file_path == '':
             return None
         else:
             return file_path
 
-    def show_message_box(self, title, text):
+    def get_save_file_dialog(self, caption, filter):
+        file_path, _ = QFileDialog.getSaveFileName(caption=caption, directory='', filter=filter)  # By omitting the directory argument (empty string, ''), the dialog should remember the last directory (depends on operating system)
+        if file_path == '':
+            return None
+        else:
+            return file_path
+
+    def show_message_box(self, title, text, icon=QMessageBox.Information):
         info_box = QMessageBox(self)
-        info_box.setIcon(QMessageBox.Information)
+        if icon is not None:
+            info_box.setIcon(icon)
         info_box.setWindowTitle(title)
         info_box.setText(text)
+        info_box.show()
+
+    def event(self, e):  # TODO
+        if e.type() == QEvent.StatusTip:
+            if e.tip() == '':
+                e = QStatusTipEvent('Ready.')
+        return super().event(e)
 
     def open(self):
         self.set_state('open')  # Load image
-        self.menu_bar.enable_widgets()
 
     def load_image(self):
         width = self.model.image.width()
@@ -83,61 +112,64 @@ class View(Subject, QMainWindow):
 
         self.image_area.set_image(self.model.image, w, h)
 
-        self.image_area.resize(self.image_area.w, self.menuBar().height() + self.statusBar().height() + self.image_area.h)
+        #self.image_area.resize(self.image_area.w, self.menuBar().height() + self.statusBar().height() + self.image_area.h)  # TODO
         if w < 280:  # Set a minimum window width so as to correctly display the window title and menu bar; 280px should be good
-            self.resize(280, self.menuBar().height() + self.statusBar().height() + h)
+            self.resize(280, h + 180)
         else:
-            self.resize(w, self.menuBar().height() + self.statusBar().height() + h)
+            self.resize(w, h + 180)
 
         # EXIF data
-        self.exif_area.load_exif(self)
+        self.exif_area.load_exif()
 
         # Update window title (the one in the title bar)
         self.setWindowTitle('IEViewer - ' + self.model.filename)
 
-        # Subject state
-        self.set_state('one_image')
-
     def save(self):
+        self.model.set_image(self.model.image.transformed(QTransform().rotate(self.image_area.rot), Qt.SmoothTransformation))
         self.set_state('save')
 
     def saveas(self):
+        self.model.set_image(self.model.image.transformed(QTransform().rotate(self.image_area.rot), Qt.SmoothTransformation))
         self.set_state('saveas')
 
     def close(self):
         self.set_state('close')
         self.setWindowTitle('IEViewer')
-        self.image_area.clear_image()
         self.menu_bar.disable_widgets()
+        self.image_area.clear_image()
+        self.exif_area = ExifWidget(self)
+        self.setCentralWidget(Layout(self).central_widget)
+        self.exif_area.hide()
+        self.image_area.show()
 
     def exit(self):
         self.set_state('exit')
 
+    def rotate(self, degree):
+        '''Here, the View directly changes the Model. Arguably, this is a violation of the MVC pattern. It happens though tha for some reason, returning (a reference to) the rotated image to the Controller in order to have it change the Model instead does not work, probably because it only returns a reference and not a copy of the rotated image. PyQt5 does not allow deep copies of its objects, so the following seems to be the only way to make it work.'''
+        self.model.set_modified_image(self.model.image.transformed(QTransform().rotate(self.image_area.rot+degree), Qt.SmoothTransformation))
+        self.image_area.set_image(self.model.modified_image, self.image_area.w, self.image_area.h)
+        self.image_area.rot += degree
+
     def rotate180(self):
-        self.set_state('rotate180')
+        self.rotate(180)
 
     def rotate90c(self):
-        self.set_state('rotate90c')
+        self.rotate(90)
 
     def rotate90cc(self):
-        self.set_state('rotate90cc')
+        self.rotate(-90)
 
     def reset_image(self):
-        self.set_state('reset_image')
-
-    def prev_image(self):
-        self.set_state('prev_image')
-
-    def next_image(self):
-        self.set_state('next_image')
+        self.rotate(-self.image_area.rot)
 
     def show_exif(self):
         if self.exif_area.isHidden():
-            self.exif_area.show()
             self.image_area.hide()
+            self.exif_area.show()
         else:
-            self.exif_area.hide()
             self.image_area.show()
+            self.exif_area.hide()
 
     def about(self):
-        self.set_state('about')
+        self.about.show()

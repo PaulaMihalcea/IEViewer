@@ -2,9 +2,9 @@ import sys, errno  # TODO Delete unnecessary imports
 import webbrowser
 from collections import OrderedDict
 from PIL import Image, ImageQt, ExifTags
-from PyQt5.QtCore import Qt, QEvent, QRect, QAbstractTableModel, QAbstractItemModel
+from PyQt5.QtCore import Qt, QEvent, QRect, QAbstractTableModel, QAbstractItemModel,QSize, QFileInfo
 from PyQt5.QtGui import QPixmap, QImage, QTransform, QMouseEvent, QStatusTipEvent, QColor, QPalette, QIcon
-from PyQt5.QtWidgets import QMainWindow, QLabel, QMenu, QMenuBar, QAction, QFileDialog, QMessageBox, QSizePolicy, QWidget, QTabWidget, QHBoxLayout, QVBoxLayout, QPushButton, QGridLayout, QScrollArea, QTableView, QTableWidget, QFrame, QTableWidgetItem, QHeaderView, QToolBar, QAbstractItemView, QStatusBar, QLayout
+from PyQt5.QtWidgets import QMainWindow, QLabel, QMenu, QMenuBar, QAction, QFileDialog, QMessageBox, QSizePolicy, QWidget, QTabWidget, QHBoxLayout, QVBoxLayout, QPushButton, QGridLayout, QScrollArea, QTableView, QTableWidget, QFrame, QTableWidgetItem, QHeaderView, QToolBar, QAbstractItemView, QStatusBar, QLayout, QListWidget, QListWidgetItem, QListView
 
 
 class ImageWidget(QLabel):
@@ -23,14 +23,12 @@ class ImageWidget(QLabel):
         self.pixmap = None
         self.w = 0
         self.h = 0
+        self.rot = 0
 
         # Alignment and resizing
         self.setAlignment(Qt.AlignCenter)
         self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
         self.setScaledContents(False)
-
-        # Additional settings
-        self.setMouseTracking(True)
 
     def set_image(self, image, width, height):
         """Updates the widget by drawing the actual image."""
@@ -54,7 +52,7 @@ class ImageWidget(QLabel):
 
     def eventFilter(self, widget, event):
         if event.type() == QEvent.Resize and widget is self and self.pixmap is not None:  # The resizing filter is only applied to the image area label
-            self.setPixmap(self.pixmap.scaled(self.width(), self.height(), aspectRatioMode=Qt.KeepAspectRatio, transformMode=Qt.SmoothTransformation))
+            self.setPixmap(QPixmap.fromImage(self.view.model.modified_image).scaled(self.width(), self.height(), aspectRatioMode=Qt.KeepAspectRatio, transformMode=Qt.SmoothTransformation))
             # Update new dimensions for later use
             self.w = self.width()
             self.h = self.height()
@@ -79,17 +77,17 @@ class ExifWidget(QFrame):
 
         self.view = view
         self.exif_data = None
+        self.exif_table = None
 
-    def load_exif(self, view):
-        self.exif_data = view.model.exif_data
+    def load_exif(self):
+        self.exif_data = self.view.model.exif_data
         if self.exif_data is not None:
             self.get_table()
-            self.set_layout()
         else:
             self.exif_table = QLabel()
             self.exif_table.setText('No EXIF data available for this image.')
             self.exif_table.setAlignment(Qt.AlignCenter)
-            self.set_layout()
+        self.set_layout()
 
     def get_table(self):
         """Initializes the exif_table attribute of the widget with a QTableWidget object."""
@@ -111,7 +109,11 @@ class ExifWidget(QFrame):
         for key in self.exif_data:
             self.exif_table.setItem(i, 0, QTableWidgetItem(key))
             self.exif_table.setItem(i, 1, QTableWidgetItem(str(self.exif_data[key])))
+            if 'http' in self.exif_table.item(i, 1).text():
+                self.exif_table.setStatusTip('Double click on the GPS location link to open a map centered at the GPS coordinates in the browser.')
             i += 1
+
+        self.exif_table.itemDoubleClicked.connect(self.open_link)
 
     def set_layout(self):
         """Sets the widget layout."""
@@ -119,6 +121,10 @@ class ExifWidget(QFrame):
         layout.addWidget(self.exif_table)
 
         self.setLayout(layout)
+
+    def open_link(self, item):
+        if 'http' in item.text():
+            webbrowser.open(item.text())
 
 
 class StatusBar(QStatusBar):
@@ -136,10 +142,6 @@ class StatusBar(QStatusBar):
         self.setMaximumHeight(20)
 
         self.setSizeGripEnabled(False)
-
-    def update(self, text):
-        """Updates the displayed text."""
-        self.showMessage(text)
 
 
 class MenuBar(QMenuBar):
@@ -178,8 +180,6 @@ class MenuBar(QMenuBar):
                                  ('edit', 'ir_sub_rotate90c'),
                                  ('edit', 'ir_sub_rotate90cc'),
                                  ('edit', 'resetimage'),
-                                 ('view', 'prev'),
-                                 ('view', 'next'),
                                  ('view', 'showexif')
                                  ]
 
@@ -256,18 +256,21 @@ class MenuBar(QMenuBar):
         self.menus['edit']['ir_sub_rotate90c'].setShortcut('Ctrl+Right')
         self.menus['edit']['ir_sub_rotate90c'].setStatusTip('Rotate the image by 90 degrees right.')
         self.menus['edit']['ir_sub_rotate90c'].setIcon(QIcon('icons/rotate90c.png'))
+        self.menus['edit']['ir_sub_rotate90c'].triggered.connect(self.view.rotate90c)
 
         # Rotate 90° Counter Clockwise
         self.menus['edit']['ir_sub_rotate90cc'] = QAction('Rotate &left 90°')
         self.menus['edit']['ir_sub_rotate90cc'].setShortcut('Ctrl+Left')
         self.menus['edit']['ir_sub_rotate90cc'].setStatusTip('Rotate the image by 90 degrees left.')
         self.menus['edit']['ir_sub_rotate90cc'].setIcon(QIcon('icons/rotate90cc.png'))
+        self.menus['edit']['ir_sub_rotate90cc'].triggered.connect(self.view.rotate90cc)
 
         # Rotate 180°
         self.menus['edit']['ir_sub_rotate180'] = QAction('Rotate &180°')
-        self.menus['edit']['ir_sub_rotate180'].setShortcut('Ctrl+U')
+        self.menus['edit']['ir_sub_rotate180'].setShortcut('Ctrl+Up')
         self.menus['edit']['ir_sub_rotate180'].setStatusTip('Rotate the image by 180 degrees.')
         self.menus['edit']['ir_sub_rotate180'].setIcon(QIcon('icons/rotate180.png'))
+        self.menus['edit']['ir_sub_rotate180'].triggered.connect(self.view.rotate180)
 
         # Separator
         self.menus['edit']['sep_3'] = QAction()
@@ -279,24 +282,6 @@ class MenuBar(QMenuBar):
         self.menus['edit']['resetimage'].setStatusTip('Reset image to default size and rotation.')
         self.menus['edit']['resetimage'].setIcon(QIcon('icons/reset.png'))
         self.menus['edit']['resetimage'].triggered.connect(self.view.reset_image)
-
-        # Previous Image
-        self.menus['view']['prev'] = QAction('Previous Image')
-        self.menus['view']['prev'].setShortcut('Left')
-        self.menus['view']['prev'].setStatusTip('Show previous image.')
-        self.menus['view']['prev'].setIcon(QIcon('icons/prev.png'))
-        self.menus['view']['prev'].triggered.connect(self.view.prev_image)
-
-        # Next Image
-        self.menus['view']['next'] = QAction('Next Image')
-        self.menus['view']['next'].setShortcut('Right')
-        self.menus['view']['next'].setStatusTip('Show next image.')
-        self.menus['view']['next'].setIcon(QIcon('icons/next.png'))
-        self.menus['view']['next'].triggered.connect(self.view.next_image)
-
-        # Separator
-        self.menus['view']['sep_4'] = QAction()
-        self.menus['view']['sep_4'].setSeparator(True)
 
         # Show EXIF
         self.menus['view']['showexif'] = QAction('Show &EXIF')
@@ -479,3 +464,14 @@ class Layout(QVBoxLayout):
     def disable_widget(self, widget):
         """Disables a (visible) widget."""
         widget.hide()
+
+
+class AboutWidget(QMessageBox):
+    def __init__(self, title, text, image_path):
+        """Inits the class."""
+        super().__init__()
+
+        self.setWindowTitle(title)
+        self.setText(text)
+        self.setTextFormat(Qt.RichText)
+        self.setIconPixmap(QPixmap(image_path))

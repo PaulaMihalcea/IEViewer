@@ -7,10 +7,18 @@ class ImageModel():
         self.image = None
         self.exif_data = None
         self.filename = None
+        self.modified_image = None
+
+    def set_image(self, image):
+        self.image = image
+
+    def set_modified_image(self, modified_image):
+        self.modified_image = modified_image
 
     def load_image(self, image, filename):
         self.filename = filename
         self.image = ImageQt.ImageQt(image)
+        self.modified_image = self.image
 
         if image._getexif() is not None:
             self.exif_data = {ExifTags.TAGS[k]: v for k, v in image._getexif().items() if k in ExifTags.TAGS}
