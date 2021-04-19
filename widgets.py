@@ -10,6 +10,11 @@ class ImageWidget(QLabel):
 
     Attributes:
         view: The view of the MVC pattern.
+        image: The original, loaded image, which is used as base for all transformations.
+        pixmap: The currently displayed pixmap (built from the original image).
+        w: The current width of the pixmap.
+        h: The current width of the pixmap.
+        rot: The current rotation of the displayed pixmap (needed to keep track of all rotations, so as to be able to eventually reset the image).
     """
 
     def __init__(self, view):
@@ -25,12 +30,22 @@ class ImageWidget(QLabel):
 
         # Alignment and resizing
         self.setAlignment(Qt.AlignCenter)
-        self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
-        self.setScaledContents(False)
+        self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)  # Allow resizing
+        self.setScaledContents(False)  # Avoid stretching the image
 
     def set_image(self, image, width, height):
-        """Updates the widget by drawing the actual image."""
-        # TODO documentazione
+        """Displays and image by generating a pixmap from it.
+
+        Keeping the original image is needed in order to avoid generating an increasingly bad quality pixmap with each transformation.
+
+        Args:
+            image:
+                The original image to be displayed.
+            width:
+                The width of the displayed image (not its original width).
+            height:
+                The height of the displayed image (not its original height).
+        """
         self.w = width
         self.h = height
 
@@ -42,22 +57,13 @@ class ImageWidget(QLabel):
         self.pixmap = QPixmap(pixmap)
 
     def clear_image(self):
+        """Reset all the attributes to their original state. Intended to be used for properly closing an image."""
         self.clear()
         self.update()
         self.pixmap = None
         self.w = 0
         self.h = 0
 
-    '''
-    def eventFilter(self, widget, event):
-        if event.type() == QEvent.Resize and widget is self and self.pixmap is not None:  # The resizing filter is only applied to the image area label
-            self.setPixmap(QPixmap.fromImage(self.view.model.modified_image).scaled(self.width(), self.height(), aspectRatioMode=Qt.KeepAspectRatio, transformMode=Qt.SmoothTransformation))
-            # Update new dimensions for later use
-            self.w = self.width()
-            self.h = self.height()
-            return True
-        return QMainWindow.eventFilter(self, widget, event)
-    '''
 
 class ExifWidget(QFrame):
     """QWidget for visualizing EXIF data.
@@ -79,19 +85,21 @@ class ExifWidget(QFrame):
         self.exif_table = None
 
     def load_exif(self):
+        """Loads the image's EXIF data.
+
+        Data is either stored into a QTableWidget if it exists,
+        otherwise a QLabel saying that no EXIF data exists is displayed instead."""
         self.exif_data = self.view.model.exif_data
-        if self.exif_data is not None:
+
+        if self.exif_data is not None:  # EXIF data exists
             self.get_table()
-            #self.exif_table.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContents)  # TODO
-            self.exif_table.resizeColumnsToContents()
-            self.exif_table.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
-            self.exif_table.setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
-        else:
+            self.exif_table.resizeColumnsToContents()  # Resize table cells to fit their contents for better legibility
+        else:  # No EXIF data available
             self.exif_table = QLabel()
             self.exif_table.setText('No EXIF data available for this image.')
             self.exif_table.setAlignment(Qt.AlignCenter)
 
-        self.set_layout()
+        self.set_layout()  # Set the resulting QFrame layout
 
     def get_table(self):
         """Initializes the exif_table attribute of the widget with a QTableWidget object."""
@@ -102,8 +110,10 @@ class ExifWidget(QFrame):
         self.exif_table.setColumnCount(2)
 
         # Graphic properties
-        self.exif_table.setHorizontalHeaderLabels(('Property', 'Value'))
-        self.exif_table.verticalHeader().setVisible(False)
+        self.exif_table.setHorizontalHeaderLabels(('Property', 'Value'))  # Set header labels
+        self.exif_table.verticalHeader().setVisible(False)  # Hide rows' header (unneeded)
+        self.exif_table.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)  # Smooth vertical scrolling
+        self.exif_table.setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)  # Smooth horizontal scrolling
 
         # User should not be able to edit table cell values
         self.exif_table.setEditTriggers(QTableWidget.NoEditTriggers)
@@ -113,10 +123,11 @@ class ExifWidget(QFrame):
         for key in self.exif_data:
             self.exif_table.setItem(i, 0, QTableWidgetItem(key))
             self.exif_table.setItem(i, 1, QTableWidgetItem(str(self.exif_data[key])))
-            if 'http' in self.exif_table.item(i, 1).text():
+            if 'http' in self.exif_table.item(i, 1).text():  # Status bar description for clickable links
                 self.exif_table.setStatusTip('Double click on the GPS location link to open a map centered at those GPS coordinates.')
             i += 1
 
+        # Connects double clicking on the GPS location link to the browser.
         self.exif_table.itemDoubleClicked.connect(self.open_link)
 
     def set_layout(self):
@@ -127,24 +138,20 @@ class ExifWidget(QFrame):
         self.setLayout(layout)
 
     def open_link(self, item):
+        """Connects double clicking on the GPS location link to the browser."""
         if 'http' in item.text():
             webbrowser.open(item.text())
 
 
 class StatusBar(QStatusBar):
-    """Simple wrapper for the status bar. For consistency reasons.
+    """Simple wrapper for the status bar. For consistency reasons."""
 
-    Attributes:
-        text: The text displayed in the status bar.
-    """
-
-    def __init__(self, view):
+    def __init__(self):
         """Inits the class."""
         super().__init__()
 
         self.setMinimumHeight(20)
         self.setMaximumHeight(20)
-
         self.setSizeGripEnabled(False)
 
 
@@ -188,19 +195,23 @@ class MenuBar(QMenuBar):
                                  ]
 
     def get_menus(self):
-        """Creates the main menus (those listed in the bar)."""
+        """Creates the main menus (those listed in the menu bar)."""
+        # File
         self.menus['file'] = OrderedDict()
         self.menus['file']['menu_'] = QMenu('&File')
         self.menus['file']['menu_'].menuAction().setStatusTip('File options.')
 
+        # Edit
         self.menus['edit'] = OrderedDict()
         self.menus['edit']['menu_'] = QMenu('&Edit')
         self.menus['edit']['menu_'].menuAction().setStatusTip('Image editing options.')
 
+        # View
         self.menus['view'] = OrderedDict()
         self.menus['view']['menu_'] = QMenu('&View')
         self.menus['view']['menu_'].menuAction().setStatusTip('Interface options.')
 
+        # Help
         self.menus['help'] = OrderedDict()
         self.menus['help']['menu_'] = QMenu('&Help')
         self.menus['help']['menu_'].menuAction().setStatusTip('IEViewer information.')
@@ -304,21 +315,21 @@ class MenuBar(QMenuBar):
 
     def add_actions_to_menus(self):
         """Adds previously created actions to the toolbar menus."""
-        current_submenu = None
+        current_submenu = None  # Keep track of the menu we are working on (needed for submenus)
 
         for m in self.menus:
             for a in self.menus[m]:
                 if a != 'menu_':  # Only actions are considered
-                    if 'submenu_' in a:  # Submenu
-                        if a != current_submenu:
+                    if 'submenu_' in a:  # Submenu found
+                        if a != current_submenu:  # Update current submenu and add it the its parent menu
                             current_submenu = a
                             self.menus[m]['menu_'].addMenu(self.menus[m][current_submenu])
-                    if 'sub_' in a:  # Submenu action
+                    if 'sub_' in a:  # Submenu action found
                         if isinstance(self.menus[m][a], QAction):  # Add actions
                             self.menus[m][current_submenu].addAction(self.menus[m][a])
                         elif isinstance(self.menus[m][a], QMenu):  # Add submenus
                             self.menus[m][current_submenu].addMenu(self.menus[m][a])
-                    else:  # Menu action
+                    else:  # Menu action found
                         if isinstance(self.menus[m][a], QAction):  # Add actions
                             self.menus[m]['menu_'].addAction(self.menus[m][a])
                         elif isinstance(self.menus[m][a], QMenu):  # Add submenus
@@ -330,35 +341,34 @@ class MenuBar(QMenuBar):
             self.addMenu(self.menus[m]['menu_'])
 
     def enable(self, menu, action=None):
-        """Enables a (disabled) menu, submenu or action."""
+        """Enables a menu, submenu or action (if disabled, otherwise does nothing)."""
         if action is None:
             self.menus[menu]['menu_'].setEnabled(True)
         else:
             self.menus[menu][action].setEnabled(True)
 
     def disable(self, menu, action=None):
-        """Disables a (enabled) menu, submenu or action."""
+        """Disables a menu, submenu or action (if enabled, otherwise does nothing)."""
         if action is None:
             self.menus[menu]['menu_'].setEnabled(False)
         else:
             self.menus[menu][action].setEnabled(False)
 
     def enable_widgets(self):
-        """Enable elements of the interface which should be available when an image is opened."""
+        """Enable all elements of the interface which should be available when an image is opened."""
         for m in self.disabled_menus:
             self.enable(m)
         for a in self.disabled_actions:
             self.enable(a[0], a[1])
 
     def disable_widgets(self):
-        """Disable elements of the interface which should not be available when no image is opened."""
+        """Disable all elements of the interface which should not be available when no image is opened."""
         for m in self.disabled_menus:
             self.disable(m)
         for a in self.disabled_actions:
             self.disable(a[0], a[1])
             if isinstance(self.menus[a[0]][a[1]], QAction) and self.menus[a[0]][a[1]].isChecked():
                 self.menus[a[0]][a[1]].setChecked(False)
-
 
 
 class ToolBar(QToolBar):
@@ -381,8 +391,8 @@ class ToolBar(QToolBar):
         self.get_actions()
         self.add_actions()
 
-        self.setMinimumWidth(408)
-        self.setMovable(False)
+        self.setMinimumWidth(408)  # Needed in order to avoid having to resize the main window at startup (otherwise some buttons will be collapsed)
+        self.setMovable(False)  # The toolbar should not be moved around, for aesthetic and layout reasons
 
     def get_actions(self):
         """Retrieves all available actions from the view's menu bar, except those included in the excluded_actions list."""
@@ -396,7 +406,7 @@ class ToolBar(QToolBar):
                     self.actions['sep_toolbar_' + str(sep_number)] = QAction(self.view)
                     self.actions['sep_toolbar_' + str(sep_number)].setSeparator(True)
                     sep_number += 1
-                current_menu = m
+                current_menu = m  # Update current menu
             for a in menus[m]:  # Add actions
                 if isinstance(menus[m][a], QAction) and a not in self.excluded_actions:
                     self.actions[a] = menus[m][a]
@@ -411,7 +421,7 @@ class ToolBar(QToolBar):
         self.actions[action].setEnabled(True)
 
     def disable_item(self, action):
-        """Disables a (enabled) action."""
+        """Disables an (enabled) action."""
         self.actions[action].setEnabled(True)
 
 
@@ -422,7 +432,7 @@ class Layout(QVBoxLayout):
 
     Attributes:
         view: The view of the MVC pattern.
-        central_widget: The actual widget that is going to have this layout (applying the layout directly to the QWindow does not work). A necessary evil.
+        central_widget: The actual widget that is going to have this layout (applying the layout directly to the QWindow does not work). A necessary evil, though redundant.
     """
 
     def __init__(self, view):
@@ -430,6 +440,7 @@ class Layout(QVBoxLayout):
         super().__init__()
 
         self.view = view
+        self.central_widget = None
 
         self.get_layout()
         self.get_central_widget()
@@ -460,7 +471,7 @@ class Layout(QVBoxLayout):
         self.addWidget(self.view.status_bar)
 
     def get_central_widget(self):
-        """Creates the QWindow central widget (apparently, a necessary evil)."""
+        """Creates the QWindow central widget (apparently, a necessary, redundant evil)."""
         self.central_widget = QWidget()
         self.central_widget.setLayout(self)
 
@@ -474,6 +485,7 @@ class Layout(QVBoxLayout):
 
 
 class AboutWidget(QMessageBox):
+    """About widget class. Displays info about the program."""
     def __init__(self, title, text, image_path):
         """Inits the class."""
         super().__init__()
