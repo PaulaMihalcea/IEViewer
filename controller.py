@@ -31,7 +31,7 @@ class Controller(Observer):
         return self.view
 
     def open(self):
-        image_path = self.view.get_open_file_dialog(caption='Open', filter='Image Files (*.bmp; *.gif; *.jpg; *.jpeg; *.png; *.pbm; *.pgm; *.ppm; *.xbm; *.xpm)')
+        image_path = self.view.get_open_file_dialog(caption='Open', filter='Image Files (*.bmp *.gif *.jpg *.jpeg *.png *.pbm *.pgm *.ppm *.xbm *.xpm);; All Files (*.*)')
 
         # Load image and EXIF data
         if image_path is not None:  # Only continues if a file has been chosen; if the user chose "Cancel" in the previous dialog, the program just returns to its default state

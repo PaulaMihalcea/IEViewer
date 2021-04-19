@@ -66,6 +66,10 @@ class View(Subject, QMainWindow):
         self.resize(512, 256)  # These default dimensions should be fine for most displays
 
     def get_open_file_dialog(self, caption, filter):
+        #  # TODOile_dialog = QFileDialog(self, caption=caption, directory='')
+        #print(filter)
+        #file_dialog.setNameFilters([filter])
+        #file_dialog.setOption(QFileDialog.DontUseNativeDialog)
         file_path, _ = QFileDialog.getOpenFileName(caption=caption, directory='', filter=filter)  # By omitting the directory argument (empty string, ''), the dialog should remember the last directory (depends on operating system)
         if file_path == '':
             return None
@@ -115,10 +119,13 @@ class View(Subject, QMainWindow):
 
         #self.image_area.resize(self.image_area.w, self.menuBar().height() + self.statusBar().height() + self.image_area.h)  # TODO
 
+        print('DIMENSIONS:', self.menu_bar.height())
+
+        diff = 130  # TODO 112, nel widget 20
         if w < 280:  # Set a minimum window width so as to correctly display the window title and menu bar; 280px should be good
-            self.resize(280, h + 112)
+            self.resize(280, h + diff)
         else:
-            self.resize(w, h + 112)
+            self.resize(w, h + diff)
 
         self.image_area.pixmap.scaled(w, h)
 

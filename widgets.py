@@ -169,8 +169,8 @@ class MenuBar(QMenuBar):
         self.add_actions_to_menus()
         self.add_menus()
 
-        self.setMinimumHeight(20)
-        self.setMaximumHeight(20)
+        self.setMinimumHeight(25)
+        self.setMaximumHeight(25)
 
         self.disabled_menus = ['edit', 'view']
         self.disabled_actions = [('file', 'save'),

@@ -20,9 +20,17 @@ class ImageModel():
         self.image = ImageQt.ImageQt(image)
         self.modified_image = self.image
 
-        if image._getexif() is not None:
+        format = self.filename.split('.')
+        format = format[len(format)-1]
+
+        if '_getexif' in dir(image) and image._getexif() is not None:
             self.exif_data = {ExifTags.TAGS[k]: v for k, v in image._getexif().items() if k in ExifTags.TAGS}
             self.set_gps_data()
+        elif format == 'png':
+            image.load()
+            #print('DISAHER', image.info)
+            self.exif_data = image.info
+
 
     def close_image(self):
         self.image = None
@@ -123,11 +131,18 @@ class ImageModel():
             return None
 
     def build_gmaps_link(self, lat, lat_ref, lon, lon_ref):
-        lat = tuple(lat)
-        lon = tuple(lon)
+        #lat = tuple(lat)  # TODO
+        #lon = tuple(lon)  # TODO
 
-        latitude = str(int(lat[0])) + '°' + str(int(lat[1])) + '\'' + str(lat[2]) + '\"' + lat_ref
-        longitude = str(int(lon[0])) + '°' + str(int(lon[1])) + '\'' + str(lon[2]) + '\"' + lon_ref
+        print('DIS LAT',lat)
+        print('DIS LON', lon)
+
+        print(lat[2][0]/10 ** (len(str(lat[2][0]))-1))
+        lat_s = lat[2][0]/10 ** (len(str(lat[2][0]))-1)
+        lon_s = lon[2][0] / 10 ** (len(str(lon[2][0])) - 1)
+
+        latitude = str(int(lat[0][0])) + '°' + str(int(lat[1][0])) + '\'' + str(lat_s) + '\"' + lat_ref
+        longitude = str(int(lon[0][0])) + '°' + str(int(lon[1][0])) + '\'' + str(lon_s) + '\"' + lon_ref
 
         link = 'https://www.google.com/maps/place/' + latitude + '+' + longitude
 
