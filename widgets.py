@@ -4,7 +4,7 @@ from collections import OrderedDict
 from PIL import Image, ImageQt, ExifTags
 from PyQt5.QtCore import Qt, QEvent, QRect, QAbstractTableModel, QAbstractItemModel,QSize, QFileInfo
 from PyQt5.QtGui import QPixmap, QImage, QTransform, QMouseEvent, QStatusTipEvent, QColor, QPalette, QIcon
-from PyQt5.QtWidgets import QMainWindow, QLabel, QMenu, QMenuBar, QAction, QFileDialog, QMessageBox, QSizePolicy, QWidget, QTabWidget, QHBoxLayout, QVBoxLayout, QPushButton, QGridLayout, QScrollArea, QTableView, QTableWidget, QFrame, QTableWidgetItem, QHeaderView, QToolBar, QAbstractItemView, QStatusBar, QLayout, QListWidget, QListWidgetItem, QListView
+from PyQt5.QtWidgets import QMainWindow, QLabel, QMenu, QMenuBar, QAction, QFileDialog, QMessageBox, QSizePolicy, QWidget, QTabWidget, QHBoxLayout, QVBoxLayout, QPushButton, QGridLayout, QScrollArea, QTableView, QTableWidget, QFrame, QTableWidgetItem, QHeaderView, QToolBar, QAbstractItemView, QStatusBar, QLayout, QListWidget, QListWidgetItem, QListView, QAbstractScrollArea
 
 
 class ImageWidget(QLabel):
@@ -84,10 +84,14 @@ class ExifWidget(QFrame):
         self.exif_data = self.view.model.exif_data
         if self.exif_data is not None:
             self.get_table()
+            #self.exif_table.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContents)  # TODO
+            self.exif_table.resizeColumnsToContents()
         else:
             self.exif_table = QLabel()
             self.exif_table.setText('No EXIF data available for this image.')
             self.exif_table.setAlignment(Qt.AlignCenter)
+        self.exif_table.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
+        self.exif_table.setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
         self.set_layout()
 
     def get_table(self):
@@ -111,7 +115,7 @@ class ExifWidget(QFrame):
             self.exif_table.setItem(i, 0, QTableWidgetItem(key))
             self.exif_table.setItem(i, 1, QTableWidgetItem(str(self.exif_data[key])))
             if 'http' in self.exif_table.item(i, 1).text():
-                self.exif_table.setStatusTip('Double click on the GPS location link to open a map centered at the GPS coordinates in the browser.')
+                self.exif_table.setStatusTip('Double click on the GPS location link to open a map centered at those GPS coordinates.')
             i += 1
 
         self.exif_table.itemDoubleClicked.connect(self.open_link)
