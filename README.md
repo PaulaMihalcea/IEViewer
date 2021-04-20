@@ -180,7 +180,7 @@ Additional script files include:
 - `observer.py`: a basic, manual implementation of the Observer design pattern;
 - `widgets.py`: an overhaul of all the PyQt5 widgets used by the view, appropriately customized for this application.
 
-A folder containing several image files suitable for testing the program has also been included within this repository, as well as several screenshots of the running application.
+A folder containing several image files suitable for testing the program (`test`) has also been included within this repository, as well as several screenshots of the running application (inside `screenshots`).
 
 ## License
 IEViewer is licensed under the **CC BY-NC-SA 4.0 License** (IEViewer) and the **GNU GPL v3 License** & **Riverbank Commercial License** (PyQt5). More details are available in the `LICENSE.md` file.
