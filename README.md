@@ -4,7 +4,7 @@
 
 ---
 
-![](https://img.shields.io/github/repo-size/paulamihalcea/Neural3DMM_BU3DFE)
+![](https://img.shields.io/github/repo-size/paulamihalcea/IEViewer)
 
 This project aims to build a simple, yet fully functional and failsafe (to an extent) **image and EXIF viewer** using the **Python** programming language and the **PyQt5** GUI toolkit.
 
@@ -25,7 +25,15 @@ The program features the following operations:
 - **Reset** the image to its original orientation (if rotated).
 - **Save** the rotated image.
 
-### Supported formats
+All operations can be accessed from either the **tool bar** or the **menu bar**, and are accompanied by meaningful icons. Additionally, a **status bar** at the bottom of the window displays a short description for each button when hovered over.
+
+### GPS Data
+Whenever the EXIF data of an image also contains **GPS data**, the program processes it in order to generate a hyperlink on which the user can double-click in order to open in the browser a **[Google Maps](https://www.google.com/maps/) page centered at the GPS coordinates** contained in the EXIF data.
+
+<img src="hscreenshots/gps_2.png" width="100" height="100">
+![after.png]()
+
+### Supported file formats
 <table>
     <tr>
         <td>
@@ -100,6 +108,7 @@ Being a Python application, IEViewer has a few basic requirements in order to be
 
 ### Requirements
 Please note that the following versions are to be intended as minimum.
+
 | Package | Version |
 | :------------ | :------------ |
 | Python | 3.8 |

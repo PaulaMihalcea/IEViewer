@@ -85,4 +85,7 @@ class Controller(Observer):
     def saveas(self):
         """Saves an image with a different name (mainly a model method wrapper)."""
         image_path, format = self.view.get_save_file_dialog(caption='Save As', filter='JPEG (*.jpg; *.jpeg);; PNG (*.png);; BMP (*.bmp);; PPM (*.ppm);; XBM (*.xbm);; XPM (*.xpm)')
-        self.model.modified_image.save(image_path + '.' + format)
+        if image_path is not None:
+            self.model.modified_image.save(image_path + '.' + format)
+        else:
+            pass
