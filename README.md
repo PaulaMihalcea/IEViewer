@@ -18,19 +18,41 @@ This project aims to build a simple, yet fully functional and failsafe (to an ex
 <sup>(adapted from [Wikipedia](https://en.wikipedia.org/wiki/Exif "Wikipedia"))</sup>
 
 ## Features
-The program features the following operations:
-- **Open** and **display an image** in one of the supported formats.
-- **Show** any available **EXIF data** (JPEG and PNG images only).
-- **Rotate** the image (180°, 90° clock wise, 90° counter clock wise).
-- **Reset** the image to its original orientation (if rotated).
-- **Save** the rotated image.
+The program features the following operations.
 
-All operations can be accessed from either the **tool bar** or the **menu bar**, and are accompanied by meaningful icons. Additionally, a **status bar** at the bottom of the window displays a short description for each button when hovered over.
+### Open
+The user can **open** and **display an image** in one of the supported formats through a graphical user interface.
+    <p align="center"><img src="https://github.com/PaulaMihalcea/IEViewer/blob/master/screenshots/open_0.png" width="50%" height="50%"></p>
+    <p align="center"><img src="https://github.com/PaulaMihalcea/IEViewer/blob/master/screenshots/open_2.png" width="50%" height="50%"></p>
 
+### Show EXIF data
+Additionally, the user can request the program to **show** any available **EXIF data** (JPEG and PNG images only).
+    <p align="center"><img src="https://github.com/PaulaMihalcea/IEViewer/blob/master/screenshots/exif.png" width="50%" height="50%"></p>
+
+### Rotate
+The user can **rotate** the image (180°, 90° clock wise, 90° counter clock wise).
+    <p align="center"><img src="https://github.com/PaulaMihalcea/IEViewer/blob/master/screenshots/rotate_1.png" width="50%" height="50%"></p>
+    <p align="center"><img src="https://github.com/PaulaMihalcea/IEViewer/blob/master/screenshots/rotate_2.png" width="50%" height="50%"></p>
+    <p align="center"><img src="https://github.com/PaulaMihalcea/IEViewer/blob/master/screenshots/rotate_3.png" width="50%" height="50%"></p>
+
+### Reset
+After a rotation, the user can **reset** the image to its original orientation with the press of a single button.
+    <p align="center"><img src="https://github.com/PaulaMihalcea/IEViewer/blob/master/screenshots/reset.png" width="50%" height="50%"></p>
+
+### Save
+The user can **save** the rotated image.
+    <p align="center"><img src="https://github.com/PaulaMihalcea/IEViewer/blob/master/screenshots/saveas.png" width="80%" height="80%"></p>
+    
 ### GPS Data
 Whenever the EXIF data of an image also contains **GPS data**, the program processes it in order to generate a hyperlink on which the user can double-click in order to open in the browser a **[Google Maps](https://www.google.com/maps/) page centered at the GPS coordinates** contained in the EXIF data.
+    <p align="center"><img src="https://github.com/PaulaMihalcea/IEViewer/blob/master/screenshots/gps_1.png" width="50%" height="50%"></p>
+    <p align="center"><img src="https://github.com/PaulaMihalcea/IEViewer/blob/master/screenshots/gps_2.png" width="50%" height="50%"></p>
 
-<img src="https://github.com/PaulaMihalcea/IEViewer/blob/master/screenshots/gps_2.png" width="50%" height="50%">
+### GUI features
+All mentioned operations can be accessed from either the **tool bar** or the **menu bar**, and are accompanied by meaningful icons. Additionally, a **status bar** at the bottom of the window displays a short description for each button when hovered over.
+
+### Keyboard Navigation
+A hotkey has also been associated to each operation, implementing a **complete keyboard navigation**.
 
 ### Supported file formats
 <table>
@@ -121,7 +143,7 @@ Please note that the following versions are to be intended as minimum.
     python3 main.py
     ```
    
-- **Windows:** You can either run IEViewer from the terminal just like on Linux, or you can modify the given `IEViewer.bat` file with the full path to your Python 3 executable and the full path to the IEViewer `main.py` script.
+- **Windows:** You can either run IEViewer from the terminal just like on Linux, or you can modify the given `IEViewer.bat` file with the full path to your Python 3 executable and the full path to the IEViewer `main.py` script in order to create an executable link to IEViewer.
 
     *For example, if Python 3 has been installed to `C:\ProgramData\Anaconda3\python.exe` and `main.py` can be found in `C:\Users\Username\IEViewer\`, then the `IEViewer.bat` file will be:*
 
@@ -142,5 +164,7 @@ Additional script files include:
 - `observer.py`: a basic, manual implementation of the Observer design pattern;
 - `widgets.py`: an overhaul of all the PyQt5 widgets used by the view, appropriately customized for this application.
 
+A folder containing several image files suitable for testing the program has also been included within this repository.
+
 ## License
-Licensed under the **CC BY-NC-SA 4.0 License** (IEViewer) and the **GNU GPL v3 License** & **Riverbank Commercial License** (PyQt5). More details in the `LICENSE.md` file.
+IEViewer is licensed under the **CC BY-NC-SA 4.0 License** (IEViewer) and the **GNU GPL v3 License** & **Riverbank Commercial License** (PyQt5). More details are available in the `LICENSE.md` file.
