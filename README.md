@@ -30,8 +30,7 @@ All operations can be accessed from either the **tool bar** or the **menu bar**,
 ### GPS Data
 Whenever the EXIF data of an image also contains **GPS data**, the program processes it in order to generate a hyperlink on which the user can double-click in order to open in the browser a **[Google Maps](https://www.google.com/maps/) page centered at the GPS coordinates** contained in the EXIF data.
 
-<img src="hscreenshots/gps_2.png" width="100" height="100">
-![after.png]()
+<img src="https://github.com/PaulaMihalcea/IEViewer/blob/master/screenshots/gps_2.png" width="50%" height="50%">
 
 ### Supported file formats
 <table>
