@@ -25,7 +25,7 @@ The program features the following operations:
 - **Reset** the image to its original orientation (if rotated).
 - **Save** the rotated image.
 
-#### Supported formats
+### Supported formats
 <table>
     <tr>
         <td>
@@ -87,8 +87,6 @@ The program features the following operations:
     </tr>
 </table>
 
----
-
 ## Installation
 Being a Python application, IEViewer has a few basic requirements in order to be up and running. In order to install them, the [pip](https://packaging.python.org/key_projects/#pip "pip") package installer is recommended, as it allows for the automatic installation of all requirements. Nonetheless, the latter have been listed in order to simplify an eventual manual installation.
 
@@ -100,16 +98,13 @@ Being a Python application, IEViewer has a few basic requirements in order to be
     pip install --upgrade -r requirements.txt
     ```
 
-#### Requirements
+### Requirements
+Please note that the following versions are to be intended as minimum.
 | Package | Version |
 | :------------ | :------------ |
 | Python | 3.8 |
 | Pillow | 8.2.0 |
 | PyQt | 5.9.2 |
-
-Please note that the above versions are to be intended as minimum.
-
----
 
 ## Usage
 - **Linux:** Run IEViewer from the terminal:
@@ -120,14 +115,12 @@ Please note that the above versions are to be intended as minimum.
    
 - **Windows:** You can either run IEViewer from the terminal just like on Linux, or you can modify the given `IEViewer.bat` file with the full path to your Python 3 executable and the full path to the IEViewer `main.py` script.
 
-    *For example, if Python 3 has been installed to `C:\ProgramData\Anaconda3\python.exe` and `main.py` can be found in `C:\Users\Paula\IEViewer\`, then the `IEViewer.bat` file will be:*
+    *For example, if Python 3 has been installed to `C:\ProgramData\Anaconda3\python.exe` and `main.py` can be found in `C:\Users\Username\IEViewer\`, then the `IEViewer.bat` file will be:*
 
     ```
-    "C:\ProgramData\Anaconda3\python.exe" "C:\Users\Paula\IEViewer\main.py"
+    "C:\ProgramData\Anaconda3\python.exe" "C:\Users\Username\IEViewer\main.py"
     pause
     ```
-   
-    
 
 ## Technical details
 **IEViewer** has been programmed in the **[Python](https://www.python.org/ "Python")** language, and uses the **[PyQt5](https://riverbankcomputing.com/software/pyqt "PyQt5")** library for its graphical user interface.
@@ -140,3 +133,6 @@ It features a complete [Model View Controller](https://martinfowler.com/eaaDev/u
 Additional script files include:
 - `observer.py`: a basic, manual implementation of the Observer design pattern;
 - `widgets.py`: an overhaul of all the PyQt5 widgets used by the view, appropriately customized for this application.
+
+## License
+Licensed under the **CC BY-NC-SA 4.0 License** (IEViewer) and the **GNU GPL v3 License** & **Riverbank Commercial License** (PyQt5). More details in the `LICENSE.md` file.
