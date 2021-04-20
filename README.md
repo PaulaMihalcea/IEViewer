@@ -6,27 +6,87 @@
 
 ![](https://img.shields.io/github/repo-size/paulamihalcea/Neural3DMM_BU3DFE)
 
-This project aims to build a simple, yet fully functional and failsafe (to an extent), **image and EXIF viewer** using the **Python** programming language and the **PyQt5** GUI toolkit.
+This project aims to build a simple, yet fully functional and failsafe (to an extent) **image and EXIF viewer** using the **Python** programming language and the **PyQt5** GUI toolkit.
 
-**[EXIF](cipa.jp/std/documents/download_e.html?DC-008-Translation-2019-E "EXIF")** (Exchangeable Image File Format) is a standard that specifies the formats for images, sound, and ancillary tags used by digital cameras (including smartphones), scanners and other systems handling image and sound files recorded by digital cameras. The specification uses the following existing file formats with the addition of specific metadata tags.
-
-The metadata tags defined in the EXIF standard cover a broad spectrum:
+**[EXIF](cipa.jp/std/documents/download_e.html?DC-008-Translation-2019-E "EXIF")** (Exchangeable Image File Format) is a standard that specifies the formats for images, sound, and ancillary tags used by digital cameras (including smartphones), scanners and other systems handling image and sound files recorded by digital cameras. The specification uses the existing file formats with the addition of specific metadata tags, which cover a broad spectrum:
 - date and time information;
-- camera settings, such as the camera model and make, and information that varies with each image e.g. (orientation, aperture, shutter speed, focal length, metering mode, and ISO speed information);
+- camera settings, such as the camera model and make, and information that varies with each image (e.g. orientation, aperture, shutter speed, focal length, metering mode, and ISO speed information);
 - a thumbnail for previewing the picture on the camera's LCD screen, in file managers, or in photo manipulation software;
 - descriptions;
 - copyright information.
-<sub></sub(from>(adapted from [Wikipedia](https://en.wikipedia.org/wiki/Exif "Wikipedia"))</sub>
+
+<sup>(adapted from [Wikipedia](https://en.wikipedia.org/wiki/Exif "Wikipedia"))</sup>
 
 ## Features
 The program features the following operations:
-- **Open** and **display an image** in one of the supported formats (see below)
-- **Show** any available **EXIF data** (JPEG and PNG images only)
-- **Rotate** the image (180°, 90° clock wise, 90° counter clock wise)
-- **Reset** the image to its original orientation (if rotated)
-- **Save** the rotated image*
+- **Open** and **display an image** in one of the supported formats.
+- **Show** any available **EXIF data** (JPEG and PNG images only).
+- **Rotate** the image (180°, 90° clock wise, 90° counter clock wise).
+- **Reset** the image to its original orientation (if rotated).
+- **Save** the rotated image.
 
 #### Supported formats
+<table>
+    <tr>
+        <td>
+            <table>
+                <tr>
+                    <th><b>Format</b></th>
+                    <th><b>Support</b></th>
+                </tr>
+                <tr>
+                    <td>BMP</td>
+                    <td>Read/Write</td>
+                </tr>
+                <tr>
+                    <td>GIF</td>
+                    <td>Read</td>
+                </tr>
+                <tr>
+                    <td>JPG</td>
+                    <td>Read/Write</td>
+                </tr>
+                <tr>
+                    <td>JPEG</td>
+                    <td>Read/Write</td>
+                </tr>
+                <tr>
+                    <td>PNG</td>
+                    <td>Read/Write</td>
+                </tr>
+            </table>
+        </td>
+        <td>
+            <table>
+                <tr>
+                    <th><b>Format</b></th>
+                    <th><b>Support</b></th>
+                </tr>
+                <tr>
+                    <td>PBM</td>
+                    <td>Read</td>
+                </tr>
+                <tr>
+                    <td>PGM</td>
+                    <td>Read</td>
+                </tr>
+                <tr>
+                    <td>PPM</td>
+                    <td>Read/Write</td>
+                </tr>
+                <tr>
+                    <td>XBM</td>
+                    <td>Read/Write</td>
+                </tr>
+                <tr>
+                    <td>XPM</td>
+                    <td>Read/Write</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
 | Format | Support |
 | :------------ | :------------ |
 | BMP | Read/Write |
