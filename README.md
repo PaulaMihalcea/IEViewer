@@ -15,10 +15,26 @@ This project aims to build a simple, yet fully functional and failsafe (to an ex
 - descriptions;
 - copyright information.
 
-<sup>(adapted from [Wikipedia](https://en.wikipedia.org/wiki/Exif "Wikipedia"))</sup>
+
+## Contents
+1. [Features](#features)
+    - [Open](#open)
+    - [Show EXIF data](#show-exif-data)
+    - [Rotate](#rotate)
+    - [Reset](#reset)
+    - [Save](#save)
+    - [GPS Data](#gps-data)
+    - [GUI features](#gui-features)
+    - [Keyboard Navigation](#keyboard-navigation)
+    - [Supported file formats](#supported-file-formats)
+2. [Installation](#installation)
+    * [Requirements](#requirements)
+3. [Usage](#usage)
+4. [Technical details](#technical-details)
+5. [License](#license)
 
 ## Features
-The program features the following operations.
+The program features the following operations:
 
 ### Open
 The user can **open** and **display an image** in one of the supported formats through a graphical user interface.
@@ -168,3 +184,5 @@ A folder containing several image files suitable for testing the program has als
 
 ## License
 IEViewer is licensed under the **CC BY-NC-SA 4.0 License** (IEViewer) and the **GNU GPL v3 License** & **Riverbank Commercial License** (PyQt5). More details are available in the `LICENSE.md` file.
+
+EXIF info in the present `README.md` file has been adapted from [Wikipedia](https://en.wikipedia.org/wiki/Exif "Wikipedia").
