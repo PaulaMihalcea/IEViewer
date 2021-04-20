@@ -87,19 +87,6 @@ The program features the following operations:
     </tr>
 </table>
 
-| Format | Support |
-| :------------ | :------------ |
-| BMP | Read/Write |
-| GIF | Read |
-| JPG | Read/Write |
-| JPEG | Read/Write |
-| PNG | Read/Write |
-| PBM | Read |
-| PGM | Read |
-| PPM | Read/Write |
-| XBM | Read/Write |
-| XPM | Read/Write |
-
 ---
 
 ## Installation
