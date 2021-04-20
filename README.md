@@ -106,6 +106,7 @@ Being a Python application, IEViewer has a few basic requirements in order to be
 | Python | 3.8 |
 | Pillow | 8.2.0 |
 | PyQt | 5.9.2 |
+
 Please note that the above versions are to be intended as minimum.
 
 ---
