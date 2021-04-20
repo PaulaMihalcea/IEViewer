@@ -1,4 +1,4 @@
-# IEViewer: a Python image & EXIF viewer
+# IEViewer: a Python Image & EXIF Viewer
 ## Author: Paula Mihalcea
 #### Università degli Studi di Firenze
 
