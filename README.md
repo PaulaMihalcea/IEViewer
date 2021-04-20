@@ -19,11 +19,11 @@ This project aims to build a simple, yet fully functional and failsafe (to an ex
 ## Contents
 1. [Features](#features)
     - [Open](#open)
-    - [Show EXIF data](#show-exif-data)
+    - [EXIF Data](#exif-data)
+    - [GPS Data](#gps-data)
     - [Rotate](#rotate)
     - [Reset](#reset)
     - [Save](#save)
-    - [GPS Data](#gps-data)
     - [GUI features](#gui-features)
     - [Keyboard Navigation](#keyboard-navigation)
     - [Supported file formats](#supported-file-formats)
@@ -41,9 +41,14 @@ The user can **open** and **display an image** in one of the supported formats t
     <p align="center"><img src="https://github.com/PaulaMihalcea/IEViewer/blob/master/screenshots/open_0.png" width="50%" height="50%"></p>
     <p align="center"><img src="https://github.com/PaulaMihalcea/IEViewer/blob/master/screenshots/open_2.png" width="50%" height="50%"></p>
 
-### Show EXIF data
+### EXIF Data
 Additionally, the user can request the program to **show** any available **EXIF data** (JPEG and PNG images only).
     <p align="center"><img src="https://github.com/PaulaMihalcea/IEViewer/blob/master/screenshots/exif.png" width="50%" height="50%"></p>
+
+### GPS Data
+Whenever the EXIF data of an image also contains **GPS data**, the program processes it in order to generate a hyperlink on which the user can double-click in order to open in the browser a **[Google Maps](https://www.google.com/maps/) page centered at the GPS coordinates** contained in the EXIF data.
+    <p align="center"><img src="https://github.com/PaulaMihalcea/IEViewer/blob/master/screenshots/gps_1.png" width="50%" height="50%"></p>
+    <p align="center"><img src="https://github.com/PaulaMihalcea/IEViewer/blob/master/screenshots/gps_2.png" width="50%" height="50%"></p>
 
 ### Rotate
 The user can **rotate** the image (180°, 90° clock wise, 90° counter clock wise).
@@ -58,11 +63,6 @@ After a rotation, the user can **reset** the image to its original orientation w
 ### Save
 The user can **save** the rotated image.
     <p align="center"><img src="https://github.com/PaulaMihalcea/IEViewer/blob/master/screenshots/saveas.png" width="80%" height="80%"></p>
-    
-### GPS Data
-Whenever the EXIF data of an image also contains **GPS data**, the program processes it in order to generate a hyperlink on which the user can double-click in order to open in the browser a **[Google Maps](https://www.google.com/maps/) page centered at the GPS coordinates** contained in the EXIF data.
-    <p align="center"><img src="https://github.com/PaulaMihalcea/IEViewer/blob/master/screenshots/gps_1.png" width="50%" height="50%"></p>
-    <p align="center"><img src="https://github.com/PaulaMihalcea/IEViewer/blob/master/screenshots/gps_2.png" width="50%" height="50%"></p>
 
 ### GUI features
 All mentioned operations can be accessed from either the **tool bar** or the **menu bar**, and are accompanied by meaningful icons. Additionally, a **status bar** at the bottom of the window displays a short description for each button when hovered over.
