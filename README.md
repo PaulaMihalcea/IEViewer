@@ -28,10 +28,11 @@ This project aims to build a simple, yet fully functional and failsafe (to an ex
     - [Keyboard Navigation](#keyboard-navigation)
     - [Supported file formats](#supported-file-formats)
 2. [Installation](#installation)
-    * [Requirements](#requirements)
+    - [Requirements](#requirements)
 3. [Usage](#usage)
 4. [Technical details](#technical-details)
-5. [License](#license)
+    - [Testing](#testing)
+6. [License](#license)
 
 ## Features
 The program features the following operations:
@@ -181,6 +182,11 @@ Additional script files include:
 - `widgets.py`: an overhaul of all the PyQt5 widgets used by the view, appropriately customized for this application.
 
 A folder containing several image files suitable for testing the program (`test`) has also been included within this repository, as well as several screenshots of the running application (inside `screenshots`).
+
+### Testing
+The program has been succesfully tested on the following platforms:
+- Windows 10 Pro
+- Linux Ubuntu 20.04 LTS
 
 ## License
 IEViewer is licensed under the **CC BY-NC-SA 4.0 License** (IEViewer) and the **GNU GPL v3 License** & **Riverbank Commercial License** (PyQt5). More details are available in the `LICENSE.md` file.
