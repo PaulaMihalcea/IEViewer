@@ -47,7 +47,7 @@ The user can **open** and **display an image** in one of the supported formats t
 ### Manipulation analysis
 The program uses an expectation-maximization algorithm [\[1\]](https://doi.org/10.1145/3369412.3395059) [\[2\]](https://github.com/PaulaMihalcea/Photo-Forensics-from-Rounding-Artifacts) to compute a map showing where the original image has been manipulated - assuming that it has previously been tampered with.
 
-**Note:** this feature might take some time to execute for large images, during which the program might stop responding. This does not imply malfunction, it is normal behavior, and the application will resume as soon as it has generated the manipulation map.
+**Note:** this feature might take some time to execute for large images, during which the program might stop responding. This does not imply malfunction; it is normal behavior, and the application will resume as soon as it has generated the manipulation map.
     <p align="center"><img src="https://github.com/PaulaMihalcea/IEViewer/blob/master/screenshots/analyze_0.png" width="50%" height="50%"></p>
     <p align="center"><img src="https://github.com/PaulaMihalcea/IEViewer/blob/master/screenshots/analyze_1.png" width="50%" height="50%"></p>
 
