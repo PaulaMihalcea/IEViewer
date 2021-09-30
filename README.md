@@ -200,11 +200,13 @@ A folder containing several image files suitable for testing the program (`test`
 
 [\[2\]](https://github.com/PaulaMihalcea/Photo-Forensics-from-Rounding-Artifacts) Paula Mihalcea, **Photo Forensics from Rounding Artifacts: a Python implementation**, GitHub, 2021
 
-## License
-IEViewer is licensed under the **CC BY-NC-SA 4.0 License** (IEViewer) and the **GNU GPL v3 License** & **Riverbank Commercial License** (PyQt5). More details are available in the `LICENSE.md` file.
+[\[3\]](https://en.wikipedia.org/wiki/Exif) Wikipedia, **Exif**, 2021
 
-EXIF info in the present `README.md` file has been adapted from [Wikipedia](https://en.wikipedia.org/wiki/Exif "Wikipedia").
+## License
+IEViewer is licensed under the **CC BY-NC-SA 4.0 License** (IEViewer) and the **GNU GPL v3 License** & **Riverbank Commercial License** (PyQt5). More details are available in the `LICENSE.md` file. All rights regarding the theory of the implemented algorithm reserved to the original paper's authors [\[1\]](https://doi.org/10.1145/3369412.3395059). 
+
+EXIF info in the present `README.md` file has been adapted from [\[3\]](https://en.wikipedia.org/wiki/Exif).
 
 ### Disclaimer
 
-Because of the nature of the EM algorithm employed for the manipulation map feature, **some manipulations will not be detected**. The author declines any responsibility with regards to the correctness of the manipulation map and its meaning.
+Because of the nature of the EM algorithm employed for the manipulation map feature, **some manipulations will not be detected**. The author declines any responsibility regarding the correctness of the manipulation map and its meaning.
