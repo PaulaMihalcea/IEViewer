@@ -112,8 +112,6 @@ def get_non_overlapping_blocks(window, block_size):
 
 # EM ALGORITHM
 
-np.seterr(invalid='ignore')  # Suppress NaN-related warnings
-
 
 # Expectation step
 def expectation(blocks, c, prob_r_b_in_c1, first_iteration=False):
