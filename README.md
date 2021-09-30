@@ -1,4 +1,4 @@
-# IEViewer: a Python image & EXIF viewer
+# IEViewer: a Python Image & EXIF Viewer
 ## Author: Paula Mihalcea
 #### Università degli Studi di Firenze
 
@@ -19,6 +19,7 @@ This project aims to build a simple, yet fully functional and failsafe (to an ex
 ## Contents
 1. [Features](#features)
     - [Open](#open)
+    - [Manipulation analysis](#manipulation-analysis)
     - [EXIF Data](#exif-data)
     - [GPS Data](#gps-data)
     - [Rotate](#rotate)
@@ -31,7 +32,9 @@ This project aims to build a simple, yet fully functional and failsafe (to an ex
     * [Requirements](#requirements)
 3. [Usage](#usage)
 4. [Technical details](#technical-details)
-5. [License](#license)
+5. [Bibliography](#bibliography)
+6. [License](#license)
+    - [Disclaimer](#disclaimer)
 
 ## Features
 The program features the following operations:
@@ -40,6 +43,13 @@ The program features the following operations:
 The user can **open** and **display an image** in one of the supported formats through a graphical user interface.
     <p align="center"><img src="https://github.com/PaulaMihalcea/IEViewer/blob/master/screenshots/open_0.png" width="50%" height="50%"></p>
     <p align="center"><img src="https://github.com/PaulaMihalcea/IEViewer/blob/master/screenshots/open_2.png" width="50%" height="50%"></p>
+
+### Manipulation analysis
+The program uses an expectation-maximization algorithm [\[1\]](https://doi.org/10.1145/3369412.3395059) [\[2\]](https://github.com/PaulaMihalcea/Photo-Forensics-from-Rounding-Artifacts) to compute a map showing where the original image has been manipulated - assuming that it has previously been tampered with.
+
+**Note:** this feature might take some time to execute for large images, during which the program might stop responding. This does not imply malfunction, it is normal behavior, and the application will resume as soon as it has generated the manipulation map.
+
+<p align="center"><img src="https://github.com/PaulaMihalcea/IEViewer/blob/master/screenshots/analyze.png" width="50%" height="50%"></p>
 
 ### EXIF Data
 Additionally, the user can request the program to **show** any available **EXIF data** (JPEG and PNG images only).
@@ -180,9 +190,19 @@ Additional script files include:
 - `observer.py`: a basic, manual implementation of the Observer design pattern;
 - `widgets.py`: an overhaul of all the PyQt5 widgets used by the view, appropriately customized for this application.
 
-A folder containing several image files suitable for testing the program has also been included within this repository, as well as several screenshots of the running application.
+A folder containing several image files suitable for testing the program (`test`) has also been included within this repository, as well as several screenshots of the running application (inside `screenshots`).
+
+## Bibliography
+
+[\[1\]](https://doi.org/10.1145/3369412.3395059) Shruti Agarwal and Hany Farid. 2020. **Photo Forensics From Rounding Artifacts.** In Proceedings of the 2020 ACM Workshop on Information Hiding and Multimedia Security (IH&MMSec '20). Association for Computing Machinery, New York, NY, USA, 103–114, DOI:[10.1145/3369412.3395059](https://doi.org/10.1145/3369412.3395059)
+
+[\[2\]](https://github.com/PaulaMihalcea/Photo-Forensics-from-Rounding-Artifacts) Paula Mihalcea, **Photo Forensics from Rounding Artifacts: a Python implementation**, GitHub, 2021
 
 ## License
 IEViewer is licensed under the **CC BY-NC-SA 4.0 License** (IEViewer) and the **GNU GPL v3 License** & **Riverbank Commercial License** (PyQt5). More details are available in the `LICENSE.md` file.
 
 EXIF info in the present `README.md` file has been adapted from [Wikipedia](https://en.wikipedia.org/wiki/Exif "Wikipedia").
+
+### Disclaimer
+
+Because of the nature of the EM algorithm employed for the manipulation map feature, **some manipulations will not be detected**. The author declines any responsibility with regards to the correctness of the manipulation map and its meaning.

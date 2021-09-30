@@ -8,18 +8,25 @@ class ImageModel():
     It also processes said EXIF data, including GPS data (with the relative Google Maps link).
 
     Attributes:
-        image: A PIL loaded image.
+        image: the current loaded image (PyQt5 image).
+        analyzed_image: An image combining both the original image and its manipulation map.
         exif_data: A dictionary containing all EXIF data available for the image (None if there is none).
         filename: The original image's file name (needed for saving).
+        path: The original image's absolute path (needed for finding the ground truth when analyzing the image).
         modified_image: A PyQt image (QImage) modified by the user (i.e. a rotated version of the original image). Also needed for saving.
         terminal_flag: Boolean flag needed to determine if the main program has been started from the terminal or an IDE (see main.py).
     """
     def __init__(self, terminal_flag):
         """Inits the class."""
         self.image = None
+        self.original_image = None
+        self.analyzed_image = None
         self.exif_data = None
         self.filename = None
+        self.path = None
+
         self.modified_image = None
+        self.manipulation_flag = False
         self.terminal_flag = terminal_flag
 
     def set_image(self, image):
@@ -30,10 +37,15 @@ class ImageModel():
         """Modified image setter.."""
         self.modified_image = modified_image
 
-    def load_image(self, image, filename):
+    def load_image(self, image, image_path):
         """Processes an image loaded by and received from the Controller."""
+        # Get file name from the absolute image path
+        filename = image_path.split('/')
+        filename = filename[len(filename) - 1]
+
         # Store needed data in model
         self.filename = filename
+        self.image_path = image_path
         self.image = ImageQt.ImageQt(image)
         self.modified_image = self.image
 
@@ -54,8 +66,10 @@ class ImageModel():
     def close_image(self):
         """Reset all the attributes to their original state. Intended to be used for properly closing an image."""
         self.image = None
+        self.analyzed_image = None
         self.exif_data = None
         self.filename = None
+        self.manipulation_flag = False
 
     def set_gps_data(self):
         """EXIF data setter."""

@@ -31,7 +31,7 @@ class View(Subject, QMainWindow):
         self.exif_area = ExifWidget(self)
         self.image_area = ImageWidget(self)
         self.status_bar = StatusBar()
-        about_text = 'IEViewer 1.0' \
+        about_text = 'IEViewer 2.0' \
                      '<br><br>' \
                      'Copyright © 2021 by' \
                      '<br>' \
@@ -42,6 +42,8 @@ class View(Subject, QMainWindow):
                      'This program uses PyQt5, a comprehensive set of Python bindings for Qt v5. Qt is a set of cross-platform C++ libraries that implement high-level APIs for accessing many aspects of modern desktop and mobile systems.\n' \
                      '<br><br>' \
                      'PyQt5 is copyright © Riverbank Computing Limited. Its homepage is <a href="https://www.riverbankcomputing.com/software/pyqt/">https://www.riverbankcomputing.com/software/pyqt/</a>.' \
+                     '<br><br>' \
+                     'Photo manipulation detection algorithm by Shruti Agarwal and Hany Farid (<i><a href="https://doi.org/10.1145/3369412.3395059">Photo Forensics From Rounding Artifacts</i></a>); Python implementation by Paula Mihalcea (<a href="https://github.com/PaulaMihalcea/Photo-Forensics-from-Rounding-Artifacts">source</a>).' \
                      '<br><br>' \
                      'No genasi were harmed in the making of this application. <a href="https://www.dndbeyond.com/races/genasi#WaterGenasi">#GenasiLivesMatter#NereisThalian</a>'
         self.about = AboutWidget('About IEViewer', about_text, image_path='icons/about_img.png')
@@ -230,6 +232,10 @@ class View(Subject, QMainWindow):
         else:
             self.image_area.show()
             self.exif_area.hide()
+
+    def analyze(self):
+        """Analyze image to find photo manipulations using an EM algorithm (and at the same time hide the image)."""
+        self.set_state('analyze')
 
     def about(self):
         """Display info about the program."""

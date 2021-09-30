@@ -1,5 +1,6 @@
 import sys
 from PIL import Image
+from analyze import main as mm
 from observer import Observer
 
 
@@ -36,6 +37,8 @@ class Controller(Observer):
             self.save()
         if state == 'saveas':  # Save image as
             self.saveas()
+        if state == 'analyze':  # Analyze image
+            self.analyze()
 
     def get_main_window(self):
         """View (main window) getter."""
@@ -69,8 +72,10 @@ class Controller(Observer):
                 self.view.close()
 
             # Update model and view
-            self.model.load_image(image, filename)
+            self.model.load_image(image, image_path)
             self.view.load_image()
+
+            return image
         else:  # No image has been chosen
             pass
 
@@ -89,3 +94,44 @@ class Controller(Observer):
             self.model.modified_image.save(image_path + '.' + format)
         else:
             pass
+
+    def analyze(self):
+        """Analyzes the image to find photo manipulations using an EM algorithm.
+
+        More details about how the algorithm works and its implementation can be found in the "About" section. Default parameters are used. Note that the original source code has been modified to fit into a single Python script.
+        """
+        # Original image
+        image_path = self.model.image_path
+        image = Image.open(image_path)  # Reload image using PIL (needed because model.image is a PyQt5 image)
+
+        # Generate manipulation map if non-existent
+        if self.model.analyzed_image is None:
+            # Original image parameters
+            width = image.width
+            height = image.height
+
+            # Get manipulation map
+            manipulation_map = Image.fromarray(mm(self.model.image_path))
+
+            # Create new image
+            analyzed_image = Image.new('RGBA', (width * 2, height))
+            analyzed_image.paste(image, (0, 0))
+            analyzed_image.paste(manipulation_map, (width, 0))
+
+            # Store analyzed image
+            self.model.analyzed_image = analyzed_image
+
+            # Update model and view
+            self.model.load_image(analyzed_image, image_path)
+            self.model.manipulation_flag = True
+            self.view.load_image()
+
+        # Otherwise, load existing map
+        elif self.model.analyzed_image is not None and not self.view.menu_bar.menus['view']['analyze'].isChecked():
+            # Update model and view
+            self.model.load_image(image, self.model.image_path)
+            self.view.load_image()
+        else:
+            # Update model and view
+            self.model.load_image(self.model.analyzed_image, self.model.image_path)
+            self.view.load_image()

@@ -191,7 +191,8 @@ class MenuBar(QMenuBar):
                                  ('edit', 'ir_sub_rotate90c'),
                                  ('edit', 'ir_sub_rotate90cc'),
                                  ('edit', 'resetimage'),
-                                 ('view', 'showexif')
+                                 ('view', 'showexif'),
+                                 ('view', 'analyze')
                                  ]
 
     def get_menus(self):
@@ -305,6 +306,14 @@ class MenuBar(QMenuBar):
         self.menus['view']['showexif'].setIcon(QIcon('icons/showexif.png'))
         self.menus['view']['showexif'].setCheckable(True)
         self.menus['view']['showexif'].triggered.connect(self.view.show_exif)
+
+        # Analyze
+        self.menus['view']['analyze'] = QAction('Analyze', self.view)
+        self.menus['view']['analyze'].setShortcut('Ctrl+A')
+        self.menus['view']['analyze'].setStatusTip('Analyze image to find photo manipulations using an EM algorithm.')
+        self.menus['view']['analyze'].setIcon(QIcon('icons/analyze.png'))
+        self.menus['view']['analyze'].setCheckable(True)
+        self.menus['view']['analyze'].triggered.connect(self.view.analyze)
 
         # About
         self.menus['help']['about'] = QAction('&About', self.view)
