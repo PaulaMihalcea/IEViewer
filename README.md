@@ -158,6 +158,8 @@ Please note that the following versions are to be intended as minimum.
 
 | Package | Version |
 | :------------ | :------------ |
+| NumPy | 1.21.2 |
+| OpenCV | 4.5.3 |
 | Python | 3.8 |
 | Pillow | 8.2.0 |
 | PyQt | 5.9.2 |
