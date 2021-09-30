@@ -114,9 +114,8 @@ class Controller(Observer):
             manipulation_map = Image.fromarray(mm(self.model.image_path))
 
             # Create new image
-            analyzed_image = Image.new('RGBA', (width * 2, height))
-            analyzed_image.paste(image, (0, 0))
-            analyzed_image.paste(manipulation_map, (width, 0))
+            analyzed_image = Image.new('RGBA', (width, height))
+            analyzed_image.paste(manipulation_map, (0, 0))
 
             # Store analyzed image
             self.model.analyzed_image = analyzed_image
