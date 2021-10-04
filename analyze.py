@@ -206,10 +206,11 @@ def get_output_map(prob_b_in_c1_r, blocks_map, img_w, img_h, show=False, save=Fa
     # Replace NaNs with a neutral probability (0.5)
     output_map = np.nan_to_num(output_map, nan=0.5)
 
-    # Thresholding & normalization
-    output_map_norm = np.where(output_map > 0.8, 255, 0).astype(np.uint8)  # Pixels with probability of being manipulated lower than 80% are masked
+    # Normalization/thresholding
+    output_map_thr = np.where(output_map > 0.8, 255, 0).astype(np.uint8)  # Pixels with probability of being manipulated lower than 80% are masked
+    output_map_norm = cv2.normalize(output_map, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
 
-    return output_map_norm
+    return output_map_thr
 
 
 # UTILS
@@ -264,7 +265,7 @@ def main(img_path):
     args.img_path = img_path
     args.win_size = 64
     args.stop_threshold = 1e-3
-    args.prob_r_b_in_c1 = 0.3
+    args.prob_r_b_in_c1 = 0.5
     args.show = False
     args.save = False
     args.show_roc_plot = False
