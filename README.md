@@ -203,7 +203,7 @@ A folder containing several image files suitable for testing the program (`test`
 [\[3\]](https://en.wikipedia.org/wiki/Exif) Wikipedia, **Exif**, 2021
 
 ## License
-IEViewer is licensed under the **CC BY-NC-SA 4.0 License** (IEViewer) and the **GNU GPL v3 License** & **Riverbank Commercial License** (PyQt5). More details are available in the `LICENSE.md` file. All rights regarding the theory of the implemented algorithm reserved to the original paper's authors [\[1\]](https://doi.org/10.1145/3369412.3395059). 
+IEViewer is licensed under the **CC BY-NC-SA 4.0 License** (IEViewer) and the **GNU GPL v3 License** & **Riverbank Commercial License** (PyQt5). More details are available in the `LICENSE.md` file. All rights regarding the theory behind the EM algorithm reserved to the original paper's authors. [\[1\]](https://doi.org/10.1145/3369412.3395059). 
 
 EXIF info in the present `README.md` file has been adapted from [\[3\]](https://en.wikipedia.org/wiki/Exif).
 
